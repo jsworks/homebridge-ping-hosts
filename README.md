@@ -1,27 +1,31 @@
-homebridge-applescript-file
-===========================
+# homebridge-ping-hosts
+A ping state sensor plugin for homebridge (https://github.com/nfarina/homebridge).
 
-Supports triggering AppleScript commands on the HomeBridge platform via Applescript files.
-
-## Installation
-
+# Installation
 1. Install homebridge using: `npm install -g homebridge`
-2. Install this plugin using: `npm install -g homebridge-applescript-file`
-3. Update your configuration file. See `sample-config.json` in this repository for a sample.
+2. Install this plugin.
+3. Update your config.json configuration file
 
-## Configuration
-
-Configuration sample:
-
+# Configuration
+Example config.json entry:
 ```
-"accessories": [
-	{
-		"accessory": "ApplescriptFile",
-		"name": "Security Camera",
-		"on": "/Users/bendodson/Documents/Scripts/cameraOn.applescript",
-		"off": "/Users/bendodson/Documents/Scripts/cameraOff.applescript"
-	}
-]
+    "platforms": [
+		{
+			"platform": "PingHosts",
+			"sensors": [
+				{
+					"id": "ping-router",
+					"name": "Router Connectivity",
+					"host": "192.168.0.1",
+					"interval": 60
+				},
+				{
+					"id": "ping-internent",
+					"name": "Internet Connectivity",
+					"host": "www.domain.com",
+					"interval": 300
+				}
+			]
+		}
+	]
 ```
-
-Note that you must use absolute paths for your AppleScript file.
