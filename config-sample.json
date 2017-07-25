@@ -1,0 +1,30 @@
+{
+	"bridge": {
+		"name": "Homebridge",
+		"username": "CD:22:3D:E3:CE:30",
+		"port": 51826,
+		"pin": "031-45-154"
+	},
+
+	"description": "This is an example configuration for the Ping Hosts homebridge plugin",
+
+	"platforms": [
+		{
+			"platform": "PingHosts",
+			"sensors": [
+				{
+					"id": "ping-router",
+					"name": "Router Connectivity",
+					"host": "192.168.0.1",
+					"interval": 60
+				},
+				{
+					"id": "ping-internent",
+					"name": "Internet Connectivity",
+					"host": "www.domain.com",
+					"interval": 300
+				}
+			]
+		}
+	]
+}

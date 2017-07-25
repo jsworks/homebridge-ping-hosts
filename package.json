@@ -1,0 +1,24 @@
+{
+	"name": "homebridge-ping-hosts",
+	"version": "1.0.0",
+	"description": "Ping state sensor plugin for homebridge (https://github.com/nfarina/homebridge)",
+	"license": "ISC",
+	"keywords": [
+		"homebridge-plugin"
+	],
+	"engines": {
+		"node": ">=0.12.0",
+		"homebridge": ">=0.2.0"
+	},
+	"author": {
+		"name": "jsWorks"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git@github.com:jsworks/homebridge-ping-hosts.git"
+	},
+	"dependencies": {
+		"ping": "^0.2.0",
+		"pkginfo": "^0.3.1"
+	}
+}
