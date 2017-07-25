@@ -12,9 +12,9 @@ module.exports = function(homebridge) {
 	Service = homebridge.hap.Service;
 	Characteristic = homebridge.hap.Characteristic;
 	homebridge.registerPlatform('homebridge-ping-hosts', 'PingHosts', PingHostsPlatform);
-    homebridge.registerAccessory('homebridge-ping-hosts', 'PingHostsContact', PingHostsContactAccessory);
+	homebridge.registerAccessory('homebridge-ping-hosts', 'PingHostsContact', PingHostsContactAccessory);
     
-    detectedState = Characteristic.ContactSensorState.CONTACT_DETECTED; // Closed
+	detectedState = Characteristic.ContactSensorState.CONTACT_DETECTED; // Closed
 	notDetectedState = Characteristic.ContactSensorState.CONTACT_NOT_DETECTED; // Open
 
 };
@@ -145,12 +145,10 @@ PingHostsContactAccessory.prototype = {
 
 		var informationService = new Service.AccessoryInformation();
 
-		
-		
 		// Set plugin information
 		informationService
 			.setCharacteristic(Characteristic.Manufacturer, 'jsWorks')
-			.setCharacteristic(Characteristic.Model, 'Internet Connectivity Sensor')
+			.setCharacteristic(Characteristic.Model, 'Ping State Sensor')
 			.setCharacteristic(Characteristic.SerialNumber, 'Version ' + module.exports.version);
 
 		return [informationService, this._service];
