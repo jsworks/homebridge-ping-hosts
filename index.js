@@ -4,7 +4,7 @@ var Service, Characteristic, detectedState, notDetectedState;
 var ping = require('ping');
 
 // Update UI immediately after sensor state change
-var updateUI = false;
+var updateUI = true;
 
 module.exports = function(homebridge) {
 
