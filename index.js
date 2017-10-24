@@ -41,12 +41,7 @@ PingHostsPlatform.prototype = {
             accessories.push(sensorAccessory);
         }
 
-        var accessoriesCount = accessories.length;
-        
-        this.log(callback);
-
         callback(accessories);
-
     }
     
 }
