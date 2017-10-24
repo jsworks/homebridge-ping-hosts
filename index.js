@@ -100,18 +100,22 @@ PingHostsContactAccessory.prototype = {
 		var self = this;
 		var lastState = self.stateValue;
 
-		ping.promise.probe(self.host)
+		ping.promise.probe(self.host, {
+	            timeout: 10,
+            	min_reply: 2
+        	})
 			.then(function (res, err) {
-				
-				if (err) {
+                if (err) {
+                	self.log('[' + this.name + '] error ->');
 					self.log(err);
 					self.stateValue = notDetectedState;
 					self.setStatusFault(1);
 				} else {
-					self.stateValue = res.alive ? notDetectedState : detectedState;
+					self.stateValue = res.alive ? detectedState : notDetectedState;
 					self.setStatusFault(0);
-					if (! self.stateValue) {
-						self.log('[' + self.name + '] Ping result for ' + self.host + ' was ' + self.stateValue);
+					if (!res.alive) {
+                        self.log('[' + this.name + '] not alive ->');
+                        self.log(res);
 					}
 				}
 				// Notify of state change, if applicable
