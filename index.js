@@ -62,7 +62,7 @@ function PingHostsContactAccessory(pkginfo, log, config) {
     this.pingInterval = parseInt(config['interval']) || 300;
     
 	// Initial state
-	this.stateValue = detectedState;
+	this.stateValue = notDetectedState;
 
 	this._service = new Service.ContactSensor(this.name);
 	
