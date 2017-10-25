@@ -109,7 +109,7 @@ PingHostsContactAccessory.prototype = {
 					self.stateValue = res.alive ? detectedState : notDetectedState;
 					self.setStatusFault(0);
 					if (!res.alive) {
-                        self.log('[' + this.name + '] not alive ->');
+                        self.log('[' + self.name + '] not alive ->');
                         self.log(res);
 					}
 				}
