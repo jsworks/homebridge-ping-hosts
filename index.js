@@ -54,8 +54,10 @@ function PingHostsContactAccessory(pkginfo, log, config) {
     this.id = config['id'];
     this.name = config['name'] || 'Host Ping Sensor';
     this.host = config['host'] || 'localhost';
-    this.pingInterval = parseInt(config['interval']) || 300;
-    
+    this.pingInterval = config['interval'] || 60;
+    this.timeout = config['timeout'] || 30;
+    this.minReply = config['min_reply'] || 2;
+
 	// Initial state
 	this.stateValue = notDetectedState;
 
@@ -96,8 +98,8 @@ PingHostsContactAccessory.prototype = {
 		var lastState = self.stateValue;
 
 		ping.promise.probe(self.host, {
-	            timeout: 10,
-            	min_reply: 2
+	            timeout: self.timeout,
+            	min_reply: self.minReply
         	})
 			.then(function (res, err) {
                 if (err) {

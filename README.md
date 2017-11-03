@@ -17,13 +17,17 @@ Example config.json entry:
 					"id": "ping-router",
 					"name": "Router Connectivity",
 					"host": "192.168.0.1",
-					"interval": 60
+					"interval": 60,
+					"timeout": 60,
+                    "min_reply": 2
 				},
 				{
 					"id": "ping-internent",
 					"name": "Internet Connectivity",
 					"host": "www.domain.com",
-					"interval": 300
+					"interval": 60,
+					"timeout": 60,
+                    "min_reply": 2
 				}
 			]
 		}
