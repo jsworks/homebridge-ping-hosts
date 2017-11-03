@@ -18,7 +18,7 @@ Example config.json entry:
 					"name": "Router Connectivity",
 					"host": "192.168.0.1",
 					"interval": 60,
-					"timeout": 60,
+					"timeout": 30,
                     "min_reply": 2
 				},
 				{
@@ -26,7 +26,7 @@ Example config.json entry:
 					"name": "Internet Connectivity",
 					"host": "www.domain.com",
 					"interval": 60,
-					"timeout": 60,
+					"timeout": 30,
                     "min_reply": 2
 				}
 			]
