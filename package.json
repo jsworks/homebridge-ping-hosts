@@ -18,6 +18,7 @@
 		"url": "git@github.com:jsworks/homebridge-ping-hosts.git"
 	},
 	"dependencies": {
+		"raw-socket": "*",
 		"net-ping": "^1.2.1"
 	}
 }
