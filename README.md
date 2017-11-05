@@ -14,20 +14,20 @@ Example config.json entry:
 			"platform": "PingHosts",
 			"sensors": [
 				{
-					"id": "ping-router",
-					"name": "Router Connectivity",
+					"id": 1,
+					"name": "Router Ping",
 					"host": "192.168.0.1",
 					"interval": 60,
-					"timeout": 30,
-                    "min_reply": 2
+					"timeout": 20,
+					"retries": 2
 				},
 				{
-					"id": "ping-internent",
-					"name": "Internet Connectivity",
+					"id": 2,
+					"name": "Internet Ping",
 					"host": "www.domain.com",
 					"interval": 60,
-					"timeout": 30,
-                    "min_reply": 2
+					"timeout": 20,
+					"retries": 2
 				}
 			]
 		}

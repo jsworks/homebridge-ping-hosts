@@ -1,7 +1,7 @@
 "use strict";
 
 var Service, Characteristic, detectedState, notDetectedState;
-var ping = require('ping');
+var ping = require('net-ping');
 
 // Update UI immediately after sensor state change
 var updateUI = true;
@@ -24,39 +24,37 @@ function PingHostsPlatform(log, config) {
 	this.log = log;
     
     this.sensors = config['sensors'] || [];
-    
-    // Allow retrieval of data from package.json
-	this.pkginfo = require('pkginfo')(module);
-
 }
 
-PingHostsPlatform.prototype = {
+PingHostsPlatform.prototype.accessories = function (callback) {
 
-    accessories: function(callback) {
+    var accessories = [];
 
-        var accessories = [];
-
-        for (var i = 0; i < this.sensors.length; i++) {
-            var sensorAccessory = new PingHostsContactAccessory(this.pkginfo, this.log, this.sensors[i]);
-            accessories.push(sensorAccessory);
-        }
-
-        callback(accessories);
+    for (var i = 0; i < this.sensors.length; i++) {
+        accessories.push(new PingHostsContactAccessory(this.log, this.sensors[i]));
     }
-    
-}
 
-function PingHostsContactAccessory(pkginfo, log, config) {
+    callback(accessories);
+};
+
+function PingHostsContactAccessory(log, config) {
 
     this.log = log;
-    this.pkginfo = pkginfo;
 
-    this.id = config['id'];
-    this.name = config['name'] || 'Host Ping Sensor';
-    this.host = config['host'] || 'localhost';
-    this.pingInterval = config['interval'] || 60;
-    this.timeout = config['timeout'] || 30;
-    this.minReply = config['min_reply'] || 2;
+    var id = config['id'];
+    if (!id) {
+        throw new Error("Missing sensor id!");
+    }
+
+    this.name = config['name'];
+    if (!this.name) {
+        throw new Error("Missing sensor name!");
+    }
+
+    this.host = config['host'];
+    if (!this.host) {
+        throw new Error("Missing sensor host!");
+    }
 
 	// Initial state
 	this.stateValue = notDetectedState;
@@ -64,96 +62,95 @@ function PingHostsContactAccessory(pkginfo, log, config) {
 	this._service = new Service.ContactSensor(this.name);
 	
 	// Default state is open, we want it to be closed
-	this._service.getCharacteristic(Characteristic.ContactSensorState)
-		.setValue(this.stateValue);
+	this._service
+        .getCharacteristic(Characteristic.ContactSensorState)
+        .setValue(this.stateValue);
 		
 	this._service
 		.getCharacteristic(Characteristic.ContactSensorState)
 		.on('get', this.getState.bind(this));
 		
-	this._service.addCharacteristic(Characteristic.StatusFault);
+	this._service
+        .addCharacteristic(Characteristic.StatusFault);
 	
 	this.changeHandler = (function(newState) {
 		
 		this.log('[' + this.name + '] Setting sensor state set to ' + newState);
-		this._service.getCharacteristic(Characteristic.ContactSensorState)
+		this._service
+            .getCharacteristic(Characteristic.ContactSensorState)
 			.setValue(newState ? detectedState : notDetectedState);
 			
-		if (updateUI)
-			this._service.getCharacteristic(Characteristic.ContactSensorState)
-				.getValue();
+		if (updateUI) {
+            this._service
+                .getCharacteristic(Characteristic.ContactSensorState)
+                .getValue();
+        }
 		
 	}).bind(this);
 
-	this.doPing();
-	setInterval(this.doPing.bind(this), this.pingInterval * 1000);
+    var options = {
+        sessionId: id,
+        networkProtocol: ping.NetworkProtocol.IPv4,
+        retries: config['retries'] || 2,
+        timeout: (config['timeout'] || 20) * 1000
+    };
 
+    this.session = ping.createSession(options);
+
+    var self = this;
+    this.session.on("error", function (error) {
+        self.log(error.toString());
+        self.session.close ();
+    });
+
+	this.doPing();
+	setInterval(this.doPing.bind(this), (config['interval'] || 60) * 1000);
 }
 
-PingHostsContactAccessory.prototype = {
+PingHostsContactAccessory.prototype.doPing = function () {
 
-	doPing: function() {
+    var self = this;
+
+    var lastState = self.stateValue;
+
+    self.session.pingHost(self.host, function(error) {
+        if (!error) {
+            self.stateValue = detectedState;
+            self.setStatusFault(0);
+        }
+        else {
+            self.log('[' + self.name + '] error:' + error.toString());
+            self.stateValue = notDetectedState;
+            self.setStatusFault(1);
+        }
+        self.session.close();
+
+        // Notify of state change, if applicable
+        if (self.stateValue !== lastState) {
+            self.changeHandler(self.stateValue);
+        }
+    });
+};
+
+PingHostsContactAccessory.prototype.setStatusFault = function (value) {
 		
-		var self = this;
-		var lastState = self.stateValue;
+    this._service.setCharacteristic(Characteristic.StatusFault, value);
+};
 
-		ping.promise.probe(self.host, {
-	            timeout: self.timeout,
-            	min_reply: self.minReply
-        	})
-			.then(function (res, err) {
-                if (err) {
-                	self.log('[' + this.name + '] error ->');
-					self.log(err);
-					self.stateValue = notDetectedState;
-					self.setStatusFault(1);
-				} else {
-					self.stateValue = res.alive ? detectedState : notDetectedState;
-					self.setStatusFault(0);
-					if (!res.alive) {
-                        self.log('[' + self.name + '] not alive ->');
-                        self.log(res);
-					}
-				}
-				// Notify of state change, if applicable
-				if (self.stateValue != lastState) self.changeHandler(self.stateValue);
-	
-			});
+PingHostsContactAccessory.prototype.getState = function (callback) {
 
-	},
-	
-	setStatusFault: function(value) {
-		
-		this._service.setCharacteristic(Characteristic.StatusFault, value);	
-		
-	},
+    this.log('[' + this.name + '] Sensor state: ' + this.stateValue);
+    callback(null, this.stateValue);
+};
 
-	identify: function(callback) {
+PingHostsContactAccessory.prototype.getServices = function () {
 
-		this.log('[' + this.name + '] Identify sensor requested');
-		callback();
+    var informationService = new Service.AccessoryInformation();
 
-	},
+    informationService
+        .setCharacteristic(Characteristic.Manufacturer, 'vectronic')
+        .setCharacteristic(Characteristic.Model, 'Ping State Sensor')
+        .setCharacteristic(Characteristic.SerialNumber, '');
 
-	getState: function(callback) {
-
-		this.log('[' + this.name + '] Getting sensor state, which is currently ' + this.stateValue);
-		callback(null, this.stateValue);
-
-	},
-
-	getServices: function() {
-
-		var informationService = new Service.AccessoryInformation();
-
-		// Set plugin information
-		informationService
-			.setCharacteristic(Characteristic.Manufacturer, 'jsWorks')
-			.setCharacteristic(Characteristic.Model, 'Ping State Sensor')
-			.setCharacteristic(Characteristic.SerialNumber, 'Version ' + module.exports.version);
-
-		return [informationService, this._service];
-
-	}
-
+    return [informationService, this._service];
 };

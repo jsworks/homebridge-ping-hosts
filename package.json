@@ -18,7 +18,6 @@
 		"url": "git@github.com:jsworks/homebridge-ping-hosts.git"
 	},
 	"dependencies": {
-		"ping": "^0.2.2",
-		"pkginfo": "^0.4.1"
+		"net-ping": "^1.2.1"
 	}
 }
