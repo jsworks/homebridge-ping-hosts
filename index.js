@@ -117,13 +117,13 @@ PingHostsContactAccessory.prototype.doPing = function () {
         if (!error) {
             self.stateValue = detectedState;
             self.setStatusFault(0);
+            self.session.close();
         }
         else {
             self.log('[' + self.name + '] error:' + error.toString());
             self.stateValue = notDetectedState;
             self.setStatusFault(1);
         }
-        self.session.close();
 
         // Notify of state change, if applicable
         if (self.stateValue !== lastState) {
