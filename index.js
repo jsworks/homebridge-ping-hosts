@@ -57,7 +57,7 @@ function PingHostsContactAccessory(log, config) {
     }
 
 	// Initial state
-	this.stateValue = notDetectedState;
+	this.stateValue = detectedState;
 
 	this._service = new Service.ContactSensor(this.name);
 	
