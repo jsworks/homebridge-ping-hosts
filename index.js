@@ -96,8 +96,15 @@ function PingHostsContactAccessory(log, config) {
 
     var self = this;
     this.session.on("error", function (error) {
-        self.log(error.toString());
-        self.session.close ();
+        self.log('[' + self.name + '] socket error:' + error.toString());
+        self.stateValue = notDetectedState;
+
+        // Notify of state change, if applicable
+        if (self.stateValue !== lastState) {
+            self.changeHandler(self.stateValue);
+        }
+
+        self.session.close();
     });
 
 	this.doPing();
@@ -116,8 +123,9 @@ PingHostsContactAccessory.prototype.doPing = function () {
             self.session.close();
         }
         else {
-            self.log('[' + self.name + '] error:' + error.toString());
+            self.log('[' + self.name + '] response error:' + error.toString());
             self.stateValue = notDetectedState;
+            self.session.close();
         }
 
         // Notify of state change, if applicable
