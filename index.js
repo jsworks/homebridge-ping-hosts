@@ -56,12 +56,10 @@ function PingHostsContactAccessory(log, config) {
         throw new Error("Missing sensor host!");
     }
 
-	// Initial state
-	this.stateValue = detectedState;
-
 	this._service = new Service.ContactSensor(this.name);
 	
-	// Default state is open, we want it to be closed
+	// Default state is closed, we will detect if it changes
+    this.stateValue = detectedState;
 	this._service
         .getCharacteristic(Characteristic.ContactSensorState)
         .setValue(this.stateValue);
@@ -113,8 +111,6 @@ PingHostsContactAccessory.prototype.doPing = function () {
     var self = this;
 
     var lastState = self.stateValue;
-
-    self.session.close();
 
     self.session.pingHost(self.host, function(error) {
         if (error) {
