@@ -105,7 +105,6 @@ function PingHostsContactAccessory(log, config) {
         }
     });
 
-	this.doPing();
 	setInterval(this.doPing.bind(this), (config['interval'] || 60) * 1000);
 }
 
@@ -115,15 +114,16 @@ PingHostsContactAccessory.prototype.doPing = function () {
 
     var lastState = self.stateValue;
 
+    self.session.close();
+
     self.session.pingHost(self.host, function(error) {
-        if (!error) {
-            self.stateValue = detectedState;
-        }
-        else {
+        if (error) {
             self.log('[' + self.name + '] response error:' + error.toString());
             self.stateValue = notDetectedState;
         }
-        self.session.close();
+        else {
+            self.stateValue = detectedState;
+        }
 
         // Notify of state change, if applicable
         if (self.stateValue !== lastState) {
