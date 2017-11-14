@@ -103,8 +103,6 @@ function PingHostsContactAccessory(log, config) {
         if (self.stateValue !== lastState) {
             self.changeHandler(self.stateValue);
         }
-
-        // self.session.close();
     });
 
 	this.doPing();
