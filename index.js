@@ -125,7 +125,6 @@ PingHostsContactAccessory.prototype.doPing = function () {
         else {
             self.log('[' + self.name + '] response error:' + error.toString());
             self.stateValue = notDetectedState;
-            self.session.close();
         }
 
         // Notify of state change, if applicable
