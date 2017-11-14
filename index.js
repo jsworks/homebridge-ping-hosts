@@ -69,10 +69,7 @@ function PingHostsContactAccessory(log, config) {
 	this._service
 		.getCharacteristic(Characteristic.ContactSensorState)
 		.on('get', this.getState.bind(this));
-		
-	this._service
-        .addCharacteristic(Characteristic.StatusFault);
-	
+
 	this.changeHandler = (function(newState) {
 		
 		this.log('[' + this.name + '] Setting sensor state set to ' + newState);
@@ -116,13 +113,11 @@ PingHostsContactAccessory.prototype.doPing = function () {
     self.session.pingHost(self.host, function(error) {
         if (!error) {
             self.stateValue = detectedState;
-            self.setStatusFault(0);
             self.session.close();
         }
         else {
             self.log('[' + self.name + '] error:' + error.toString());
             self.stateValue = notDetectedState;
-            self.setStatusFault(1);
         }
 
         // Notify of state change, if applicable
@@ -130,11 +125,6 @@ PingHostsContactAccessory.prototype.doPing = function () {
             self.changeHandler(self.stateValue);
         }
     });
-};
-
-PingHostsContactAccessory.prototype.setStatusFault = function (value) {
-		
-    this._service.setCharacteristic(Characteristic.StatusFault, value);
 };
 
 PingHostsContactAccessory.prototype.getState = function (callback) {
