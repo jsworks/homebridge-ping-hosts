@@ -104,7 +104,7 @@ function PingHostsContactAccessory(log, config) {
             self.changeHandler(self.stateValue);
         }
 
-        self.session.close();
+        // self.session.close();
     });
 
 	this.doPing();
@@ -120,12 +120,12 @@ PingHostsContactAccessory.prototype.doPing = function () {
     self.session.pingHost(self.host, function(error) {
         if (!error) {
             self.stateValue = detectedState;
-            self.session.close();
         }
         else {
             self.log('[' + self.name + '] response error:' + error.toString());
             self.stateValue = notDetectedState;
         }
+        self.session.close();
 
         // Notify of state change, if applicable
         if (self.stateValue !== lastState) {
