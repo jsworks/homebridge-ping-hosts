@@ -54,7 +54,7 @@ function PingHostContactAccessory(log, config, id) {
 
     this.services.ContactSensor
         .getCharacteristic(Characteristic.ContactSensorState)
-        .setvalue(Characteristic.ContactSensorState.CONTACT_DETECTED);
+        .setValue(Characteristic.ContactSensorState.CONTACT_DETECTED);
 
     var options = {
         sessionId: id,
