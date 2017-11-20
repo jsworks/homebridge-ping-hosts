@@ -34,12 +34,12 @@ function PingHostContactAccessory(log, config, id) {
 
     this.name = config['name'];
     if (!this.name) {
-        throw new Error("Missing sensor name!");
+        throw new Error("Missing name!");
     }
 
     this.host = config['host'];
     if (!this.host) {
-        throw new Error("Missing sensor host!");
+        throw new Error("Missing host!");
     }
 
     this.services = {
@@ -97,6 +97,5 @@ PingHostContactAccessory.prototype.doPing = function () {
 
 
 PingHostContactAccessory.prototype.getServices = function () {
-
     return [this.services.AccessoryInformation, this.services.ContactSensor];
 };

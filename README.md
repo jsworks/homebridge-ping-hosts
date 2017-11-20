@@ -14,14 +14,14 @@ Example config.json entry:
 			"platform": "PingHosts",
 			"hosts": [
 				{
-					"name": "Router Ping",
+					"name": "Router",
 					"host": "192.168.0.1",
 					"interval": 60,
 					"timeout": 20,
 					"retries": 2
 				},
 				{
-					"name": "Internet Ping",
+					"name": "Internet",
 					"host": "www.domain.com",
 					"interval": 60,
 					"timeout": 20,
