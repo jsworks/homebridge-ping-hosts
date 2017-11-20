@@ -12,7 +12,7 @@ Example config.json entry:
     "platforms": [
 		{
 			"platform": "PingHosts",
-			"sensors": [
+			"hosts": [
 				{
 					"id": 1,
 					"name": "Router Ping",

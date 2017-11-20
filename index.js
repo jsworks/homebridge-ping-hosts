@@ -1,40 +1,34 @@
 "use strict";
 
-var Service, Characteristic, detectedState, notDetectedState;
 var ping = require('net-ping');
+var Service, Characteristic;
+
 
 module.exports = function(homebridge) {
 
-	// Service and Characteristic are from hap-nodejs
 	Service = homebridge.hap.Service;
 	Characteristic = homebridge.hap.Characteristic;
-	homebridge.registerPlatform('homebridge-ping-hosts', 'PingHosts', PingHostsPlatform);
-	homebridge.registerAccessory('homebridge-ping-hosts', 'PingHostsContact', PingHostsContactAccessory);
-    
-	detectedState = Characteristic.ContactSensorState.CONTACT_DETECTED; // Closed
-	notDetectedState = Characteristic.ContactSensorState.CONTACT_NOT_DETECTED; // Open
 
+	homebridge.registerPlatform('homebridge-ping-hosts', 'PingHosts', PingHostsPlatform);
 };
 
-function PingHostsPlatform(log, config) {
 
+function PingHostsPlatform(log, config) {
 	this.log = log;
-    
-    this.sensors = config['sensors'] || [];
+    this.hosts = config['hosts'] || [];
 }
 
+
 PingHostsPlatform.prototype.accessories = function (callback) {
-
     var accessories = [];
-
-    for (var i = 0; i < this.sensors.length; i++) {
-        accessories.push(new PingHostsContactAccessory(this.log, this.sensors[i]));
+    for (var i = 0; i < this.hosts.length; i++) {
+        accessories.push(new PingHostContactAccessory(this.log, this.hosts[i]));
     }
-
     callback(accessories);
 };
 
-function PingHostsContactAccessory(log, config) {
+
+function PingHostContactAccessory(log, config) {
 
     this.log = log;
 
@@ -53,29 +47,19 @@ function PingHostsContactAccessory(log, config) {
         throw new Error("Missing sensor host!");
     }
 
-	this._service = new Service.ContactSensor(this.name);
-	
-	// Default state is closed, we will detect if it changes
-    this.stateValue = detectedState;
-	this._service
+    this.services = {
+        AccessoryInformation: new Service.AccessoryInformation(),
+        ContactSensor: new Service.ContactSensor(this.name)
+    };
+
+    this.services.AccessoryInformation
+        .setCharacteristic(Characteristic.Manufacturer, 'vectronic');
+    this.services.AccessoryInformation
+        .setCharacteristic(Characteristic.Model, 'Ping State Sensor');
+
+    this.services.ContactSensor
         .getCharacteristic(Characteristic.ContactSensorState)
-        .setValue(this.stateValue);
-		
-	this._service
-		.getCharacteristic(Characteristic.ContactSensorState)
-		.on('get', this.getState.bind(this));
-
-	this.changeHandler = (function(newState) {
-		
-		this.log('[' + this.name + '] Setting sensor state set to ' + newState);
-		this._service
-            .getCharacteristic(Characteristic.ContactSensorState)
-			.setValue(newState ? detectedState : notDetectedState);
-        this._service
-            .getCharacteristic(Characteristic.ContactSensorState)
-            .getValue();
-
-	}).bind(this);
+        .setvalue(Characteristic.ContactSensorState.CONTACT_DETECTED);
 
     var options = {
         sessionId: id,
@@ -83,59 +67,41 @@ function PingHostsContactAccessory(log, config) {
         retries: config['retries'] || 2,
         timeout: (config['timeout'] || 20) * 1000
     };
-
     this.session = ping.createSession(options);
 
     var self = this;
     this.session.on("error", function (error) {
-        self.log('[' + self.name + '] socket error:' + error.toString());
-        self.stateValue = notDetectedState;
-
-        // Notify of state change, if applicable
-        if (self.stateValue !== lastState) {
-            self.changeHandler(self.stateValue);
-        }
+        self.log('[' + self.name + '] socket error: ' + error.toString());
+        self.services.ContactSensor
+            .getCharacteristic(Characteristic.ContactSensorState)
+            .updateValue(Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
     });
 
 	setInterval(this.doPing.bind(this), (config['interval'] || 60) * 1000);
 }
 
-PingHostsContactAccessory.prototype.doPing = function () {
+
+PingHostContactAccessory.prototype.doPing = function () {
 
     var self = this;
-
-    var lastState = self.stateValue;
 
     self.session.pingHost(self.host, function(error) {
         if (error) {
             self.log('[' + self.name + '] response error:' + error.toString());
-            self.stateValue = notDetectedState;
+            self.services.ContactSensor
+                .getCharacteristic(Characteristic.ContactSensorState)
+                .updateValue(Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
         }
         else {
-            self.stateValue = detectedState;
-        }
-
-        // Notify of state change, if applicable
-        if (self.stateValue !== lastState) {
-            self.changeHandler(self.stateValue);
+            self.services.ContactSensor
+                .getCharacteristic(Characteristic.ContactSensorState)
+                .updateValue(Characteristic.ContactSensorState.CONTACT_DETECTED);
         }
     });
 };
 
-PingHostsContactAccessory.prototype.getState = function (callback) {
 
-    this.log('[' + this.name + '] Sensor state: ' + this.stateValue);
-    callback(null, this.stateValue);
-};
+PingHostContactAccessory.prototype.getServices = function () {
 
-PingHostsContactAccessory.prototype.getServices = function () {
-
-    var informationService = new Service.AccessoryInformation();
-
-    informationService
-        .setCharacteristic(Characteristic.Manufacturer, 'vectronic')
-        .setCharacteristic(Characteristic.Model, 'Ping State Sensor')
-        .setCharacteristic(Characteristic.SerialNumber, '');
-
-    return [informationService, this._service];
+    return [this.services.AccessoryInformation, this.services.ContactSensor];
 };
