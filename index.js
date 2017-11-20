@@ -31,6 +31,7 @@ PingHostsPlatform.prototype.accessories = function (callback) {
 function PingHostContactAccessory(log, config, id) {
 
     this.log = log;
+    this.id = id;
 
     this.name = config['name'];
     if (!this.name) {
@@ -56,21 +57,12 @@ function PingHostContactAccessory(log, config, id) {
         .getCharacteristic(Characteristic.ContactSensorState)
         .setValue(Characteristic.ContactSensorState.CONTACT_DETECTED);
 
-    var options = {
+    this.options = {
         sessionId: id,
         networkProtocol: ping.NetworkProtocol.IPv4,
         retries: config['retries'] || 2,
         timeout: (config['timeout'] || 20) * 1000
     };
-    this.session = ping.createSession(options);
-
-    var self = this;
-    this.session.on("error", function (error) {
-        self.log('[' + self.name + '] socket error: ' + error.toString());
-        self.services.ContactSensor
-            .getCharacteristic(Characteristic.ContactSensorState)
-            .updateValue(Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
-    });
 
 	setInterval(this.doPing.bind(this), (config['interval'] || 60) * 1000);
 }
@@ -78,9 +70,18 @@ function PingHostContactAccessory(log, config, id) {
 
 PingHostContactAccessory.prototype.doPing = function () {
 
+    var session = ping.createSession(this.options);
+
     var self = this;
 
-    self.session.pingHost(self.host, function(error) {
+    session.on("error", function (error) {
+        self.log('[' + self.name + '] socket error: ' + error.toString());
+        self.services.ContactSensor
+            .getCharacteristic(Characteristic.ContactSensorState)
+            .updateValue(Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
+    });
+
+    session.pingHost(self.host, function (error) {
         if (error) {
             self.log('[' + self.name + '] response error:' + error.toString());
             self.services.ContactSensor
