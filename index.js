@@ -22,20 +22,15 @@ function PingHostsPlatform(log, config) {
 PingHostsPlatform.prototype.accessories = function (callback) {
     var accessories = [];
     for (var i = 0; i < this.hosts.length; i++) {
-        accessories.push(new PingHostContactAccessory(this.log, this.hosts[i]));
+        accessories.push(new PingHostContactAccessory(this.log, this.hosts[i], i+1));
     }
     callback(accessories);
 };
 
 
-function PingHostContactAccessory(log, config) {
+function PingHostContactAccessory(log, config, id) {
 
     this.log = log;
-
-    var id = config['id'];
-    if (!id) {
-        throw new Error("Missing sensor id!");
-    }
 
     this.name = config['name'];
     if (!this.name) {
