@@ -14,7 +14,6 @@ Example config.json entry:
 			"platform": "PingHosts",
 			"hosts": [
 				{
-					"id": 1,
 					"name": "Router Ping",
 					"host": "192.168.0.1",
 					"interval": 60,
@@ -22,7 +21,6 @@ Example config.json entry:
 					"retries": 2
 				},
 				{
-					"id": 2,
 					"name": "Internet Ping",
 					"host": "www.domain.com",
 					"interval": 60,
