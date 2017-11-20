@@ -1,6 +1,6 @@
 "use strict";
 
-var ping = require('net-ping');
+var ping = require("net-ping");
 var Service, Characteristic;
 
 
@@ -9,13 +9,13 @@ module.exports = function(homebridge) {
 	Service = homebridge.hap.Service;
 	Characteristic = homebridge.hap.Characteristic;
 
-	homebridge.registerPlatform('homebridge-ping-hosts', 'PingHosts', PingHostsPlatform);
+	homebridge.registerPlatform("homebridge-ping-hosts", "PingHosts", PingHostsPlatform);
 };
 
 
 function PingHostsPlatform(log, config) {
 	this.log = log;
-    this.hosts = config['hosts'] || [];
+    this.hosts = config["hosts"] || [];
 }
 
 
@@ -33,12 +33,12 @@ function PingHostContactAccessory(log, config, id) {
     this.log = log;
     this.id = id;
 
-    this.name = config['name'];
+    this.name = config["name"];
     if (!this.name) {
         throw new Error("Missing name!");
     }
 
-    this.host = config['host'];
+    this.host = config["host"];
     if (!this.host) {
         throw new Error("Missing host!");
     }
@@ -49,9 +49,9 @@ function PingHostContactAccessory(log, config, id) {
     };
 
     this.services.AccessoryInformation
-        .setCharacteristic(Characteristic.Manufacturer, 'vectronic');
+        .setCharacteristic(Characteristic.Manufacturer, "vectronic");
     this.services.AccessoryInformation
-        .setCharacteristic(Characteristic.Model, 'Ping State Sensor');
+        .setCharacteristic(Characteristic.Model, "Ping State Sensor");
 
     this.services.ContactSensor
         .getCharacteristic(Characteristic.ContactSensorState)
@@ -60,11 +60,11 @@ function PingHostContactAccessory(log, config, id) {
     this.options = {
         sessionId: id,
         networkProtocol: ping.NetworkProtocol.IPv4,
-        retries: config['retries'] || 2,
-        timeout: (config['timeout'] || 20) * 1000
+        retries: config["retries"] || 2,
+        timeout: (config["timeout"] || 20) * 1000
     };
 
-	setInterval(this.doPing.bind(this), (config['interval'] || 60) * 1000);
+	setInterval(this.doPing.bind(this), (config["interval"] || 60) * 1000);
 }
 
 
@@ -75,7 +75,7 @@ PingHostContactAccessory.prototype.doPing = function () {
     var self = this;
 
     session.on("error", function (error) {
-        self.log('[' + self.name + '] socket error: ' + error.toString());
+        self.log("[" + self.name + "] socket error: " + error.toString());
         self.services.ContactSensor
             .getCharacteristic(Characteristic.ContactSensorState)
             .updateValue(Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
@@ -83,7 +83,7 @@ PingHostContactAccessory.prototype.doPing = function () {
 
     session.pingHost(self.host, function (error) {
         if (error) {
-            self.log('[' + self.name + '] response error:' + error.toString());
+            self.log("[" + self.name + "] response error:" + error.toString());
             self.services.ContactSensor
                 .getCharacteristic(Characteristic.ContactSensorState)
                 .updateValue(Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);

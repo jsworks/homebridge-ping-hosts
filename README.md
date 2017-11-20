@@ -3,11 +3,12 @@ A ping state sensor plugin for homebridge (https://github.com/nfarina/homebridge
 
 # Installation
 1. Install homebridge using: `npm install -g homebridge`
-2. Install this plugin.
-3. Update your config.json configuration file
+2. Install this plugin: `npm install -g homebridge-ping-hosts`
+3. Update your `config.json` configuration file
 
 # Configuration
-Example config.json entry:
+Example `config.json` entry:
+
 ```
     "platforms": [
 		{
