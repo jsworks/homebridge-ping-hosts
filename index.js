@@ -70,8 +70,8 @@ function PingHostContactAccessory(log, config, id) {
 
     this.options = {
         networkProtocol: ping.NetworkProtocol.IPv4,
-        retries: 1,
-        timeout: (config["timeout"] || 30) * 1000
+        retries: config["retries"] || 1,
+        timeout: (config["timeout"] || 25) * 1000
     };
 
 	setInterval(this.doPing.bind(this), (config["interval"] || 60) * 1000);

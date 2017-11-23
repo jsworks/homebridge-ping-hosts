@@ -18,15 +18,24 @@ Example `config.json` entry:
 					"name": "Router",
 					"host": "192.168.0.1",
 					"interval": 60,
-					"timeout": 20
+					"timeout": 25,
+					"retries": 1
 				},
 				{
 					"name": "Internet",
 					"host": "www.domain.com",
 					"interval": 60,
-					"timeout": 20
+					"timeout": 25,
+					"retries": 1
 				}
 			]
 		}
 	]
 ```
+
+NOTE: 
+
+- Works better if `timeout * (1 + retries) < interval`
+- `retries` defaults to 1
+- `timeout` defaults to 25
+- `interval` defaults to 60
