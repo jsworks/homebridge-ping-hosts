@@ -3,7 +3,7 @@ A ping state sensor plugin for homebridge (https://github.com/nfarina/homebridge
 
 # Installation
 1. Install homebridge using: `npm install -g homebridge`
-2. Install this plugin: `npm install -g homebridge-ping-hosts`
+2. Install this plugin: `npm install -g git://github.com/vectronic/homebridge-ping-hosts.git --unsafe-perm`
 3. Update your `config.json` configuration file
 
 # Configuration
