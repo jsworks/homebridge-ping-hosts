@@ -9,7 +9,7 @@ module.exports = function(homebridge) {
 	Service = homebridge.hap.Service;
 	Characteristic = homebridge.hap.Characteristic;
 
-	homebridge.registerPlatform("homebridge-ping-hosts", "PingHosts", PingHostsPlatform);
+	homebridge.registerPlatform("@vectronic/homebridge-ping-hosts", "PingHosts", PingHostsPlatform);
 };
 
 

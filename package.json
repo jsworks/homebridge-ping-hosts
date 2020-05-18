@@ -1,14 +1,14 @@
 {
-	"name": "homebridge-ping-hosts",
-	"version": "1.0.0",
+	"name": "@vectronic/homebridge-ping-hosts",
+	"displayName": "Homebridge Ping Hosts",
+	"version": "1.0.2",
 	"description": "Ping state sensor plugin for homebridge (https://github.com/nfarina/homebridge)",
 	"license": "ISC",
 	"keywords": [
 		"homebridge-plugin"
 	],
 	"engines": {
-		"node": ">=0.12.0",
-		"homebridge": ">=0.2.0"
+		"homebridge": ">=1.1.0"
 	},
 	"author": {
 		"name": "vectronic"
