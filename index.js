@@ -99,16 +99,19 @@ PingHostContactAccessory.prototype.doPing = function () {
 
     session.pingHost(self.host, function (error, target, sent, rcvd) {
         if (error) {
-            self.log("[" + self.name + "] response error: " + error.toString() + " for " + target + " at " + sent + " with session " + self.options.sessionId);
-            self.services.ContactSensor
-                .getCharacteristic(Characteristic.ContactSensorState)
-                .updateValue(Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
+            if ((error instanceof ping.RequestTimedOutError) || (err.source === target)) {
+                self.log("[" + self.name + "] response error: " + error.toString() + " for " + target + " at " + sent + " with session " + self.options.sessionId);
+                self.services.ContactSensor
+                    .getCharacteristic(Characteristic.ContactSensorState)
+                    .updateValue(Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
+                return;
+            }
+            self.log("[" + self.name + "] ignoring response error: " + error.toString() + " for " + target + " at " + sent + " with session " + self.options.sessionId);
+            return;
         }
-        else {
-            self.services.ContactSensor
-                .getCharacteristic(Characteristic.ContactSensorState)
-                .updateValue(Characteristic.ContactSensorState.CONTACT_DETECTED);
-        }
+        self.services.ContactSensor
+            .getCharacteristic(Characteristic.ContactSensorState)
+            .updateValue(Characteristic.ContactSensorState.CONTACT_DETECTED);
     });
 };
 
