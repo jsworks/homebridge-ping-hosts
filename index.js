@@ -99,7 +99,7 @@ PingHostContactAccessory.prototype.doPing = function () {
 
     session.pingHost(self.host, function (error, target, sent, rcvd) {
         if (error) {
-            if ((error instanceof ping.RequestTimedOutError) || (err.source === target)) {
+            if ((error instanceof ping.RequestTimedOutError) || (error.source === target)) {
                 self.log("[" + self.name + "] response error: " + error.toString() + " for " + target + " at " + sent + " with session " + self.options.sessionId);
                 self.services.ContactSensor
                     .getCharacteristic(Characteristic.ContactSensorState)
