@@ -1,0 +1,42 @@
+{
+  "pluginAlias": "PingHosts",
+  "pluginType": "platform",
+  "singular": false,
+  "schema": {
+    "hosts": {
+      "title": "Hosts",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name:": {
+            "title": "Name",
+            "type": "string"
+          },
+          "host": {
+            "title": "Host",
+            "type": "string"
+          },
+          "interval": {
+            "title": "Interval",
+            "type": "integer",
+            "default": 60,
+            "minimum": 1
+          },
+          "timeout": {
+            "title": "Timeout",
+            "type": "integer",
+            "default": 25,
+            "minimum": 1
+          },
+          "retries": {
+            "title": "Retries",
+            "type": "integer",
+            "default": 1,
+            "minimum": 1
+          }
+        }
+      }
+    }
+  }
+}
