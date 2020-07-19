@@ -9,12 +9,12 @@
       "items": {
         "type": "object",
         "properties": {
-          "name:": {
-            "title": "Name",
+          "name": {
+            "title": "Friendly Name",
             "type": "string"
           },
           "host": {
-            "title": "Host",
+            "title": "Hostname or IP",
             "type": "string"
           },
           "interval": {
