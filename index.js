@@ -66,7 +66,7 @@ function PingHostContactAccessory(log, config, id) {
 
     this.services.ContactSensor
         .getCharacteristic(Characteristic.ContactSensorState)
-        .setValue(Characteristic.ContactSensorState.CONTACT_DETECTED);
+        .setValue(Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
 
     this.options = {
         networkProtocol: ping.NetworkProtocol.IPv4,
@@ -99,14 +99,10 @@ PingHostContactAccessory.prototype.doPing = function () {
 
     session.pingHost(self.host, function (error, target, sent) {
         if (error) {
-            if ((error instanceof ping.RequestTimedOutError) || (error.source === target)) {
-                self.log("[" + self.name + "] response error: " + error.toString() + " for " + target + " at " + sent + " with session " + self.options.sessionId);
-                self.services.ContactSensor
-                    .getCharacteristic(Characteristic.ContactSensorState)
-                    .updateValue(Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
-                return;
-            }
-            self.log("[" + self.name + "] ignoring response error: " + error.toString() + " for " + target + " at " + sent + " with session " + self.options.sessionId);
+            self.log("[" + self.name + "] response error: " + error.toString() + " for " + target + " at " + sent + " with session " + self.options.sessionId);
+            self.services.ContactSensor
+                .getCharacteristic(Characteristic.ContactSensorState)
+                .updateValue(Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
             return;
         }
         self.log("[" + self.name + "] success for " + target + " with session " + self.options.sessionId);
