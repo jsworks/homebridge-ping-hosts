@@ -97,7 +97,7 @@ PingHostContactAccessory.prototype.doPing = function () {
         self.log("[" + self.name + "] socket with session " + self.options.sessionId + " closed");
     });
 
-    session.pingHost(self.host, function (error, target, sent, rcvd) {
+    session.pingHost(self.host, function (error, target, sent) {
         if (error) {
             if ((error instanceof ping.RequestTimedOutError) || (error.source === target)) {
                 self.log("[" + self.name + "] response error: " + error.toString() + " for " + target + " at " + sent + " with session " + self.options.sessionId);
@@ -109,6 +109,7 @@ PingHostContactAccessory.prototype.doPing = function () {
             self.log("[" + self.name + "] ignoring response error: " + error.toString() + " for " + target + " at " + sent + " with session " + self.options.sessionId);
             return;
         }
+        self.log("[" + self.name + "] success for " + target + " with session " + self.options.sessionId);
         self.services.ContactSensor
             .getCharacteristic(Characteristic.ContactSensorState)
             .updateValue(Characteristic.ContactSensorState.CONTACT_DETECTED);
