@@ -39,3 +39,20 @@ NOTE:
 - `retries` defaults to 1
 - `timeout` defaults to 25
 - `interval` defaults to 60
+
+# Permission Problem?
+
+If you get an error which looks like:
+
+```
+Error: Operation not permitted
+at new Socket (/usr/local/lib/node_modules/@vectronic/homebridge-ping-hosts/node_modules/raw-socket/index.js:47:14)
+```
+
+then you are probably running on a Linux based OS requiring the `CAP_NET_RAW` capability to be added to the NodeJS executable.
+
+Try something like this:
+
+```
+sudo setcap cap_net_raw+eip $(eval readlink -f `which node`)
+```  
