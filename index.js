@@ -54,6 +54,17 @@ function PingHostContactAccessory(log, config, id) {
         throw new Error("Missing host!");
     }
 
+    this.default_state = config["default_open"];
+    if (!this.default_state || typeof this.default_state != "boolean" || this.default_state == true) {
+        this.log("[" + this.name + "] Default contact state set to 'open'")
+        this.default_state = Characteristic.ContactSensorState.CONTACT_NOT_DETECTED
+        this.alternate_state = Characteristic.ContactSensorState.CONTACT_DETECTED
+    } else {
+        this.log("[" + this.name + "] Default contact state set to 'closed'")
+        this.default_state = Characteristic.ContactSensorState.CONTACT_DETECTED
+        this.alternate_state = Characteristic.ContactSensorState.CONTACT_NOT_DETECTED
+    }
+
     this.services = {
         AccessoryInformation: new Service.AccessoryInformation(),
         ContactSensor: new Service.ContactSensor(this.name)
@@ -66,7 +77,7 @@ function PingHostContactAccessory(log, config, id) {
 
     this.services.ContactSensor
         .getCharacteristic(Characteristic.ContactSensorState)
-        .setValue(Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
+        .setValue(this.default_state);
 
     this.options = {
         networkProtocol: ping.NetworkProtocol.IPv4,
@@ -90,7 +101,7 @@ PingHostContactAccessory.prototype.doPing = function () {
         self.log("[" + self.name + "] socket error with session " + self.options.sessionId +  ": " + error.toString());
         self.services.ContactSensor
             .getCharacteristic(Characteristic.ContactSensorState)
-            .updateValue(Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
+            .updateValue(this.default_state);
     });
 
     session.on("close", function () {
@@ -102,13 +113,13 @@ PingHostContactAccessory.prototype.doPing = function () {
             self.log("[" + self.name + "] response error: " + error.toString() + " for " + target + " at " + sent + " with session " + self.options.sessionId);
             self.services.ContactSensor
                 .getCharacteristic(Characteristic.ContactSensorState)
-                .updateValue(Characteristic.ContactSensorState.CONTACT_NOT_DETECTED);
+                .updateValue(this.default_state);
             return;
         }
         self.log("[" + self.name + "] success for " + target + " with session " + self.options.sessionId);
         self.services.ContactSensor
             .getCharacteristic(Characteristic.ContactSensorState)
-            .updateValue(Characteristic.ContactSensorState.CONTACT_DETECTED);
+            .updateValue(this.alternate_state);
     });
 };
 

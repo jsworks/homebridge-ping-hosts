@@ -14,7 +14,7 @@
             "type": "string"
           },
           "host": {
-            "title": "Hostname or IP",
+            "title": "IP Address",
             "type": "string"
           },
           "interval": {
@@ -34,6 +34,11 @@
             "type": "integer",
             "default": 1,
             "minimum": 1
+          },
+          "default_state": {
+            "title": "Failure marks sensor as open?",
+            "type": "boolean",
+            "default": true
           }
         }
       }
