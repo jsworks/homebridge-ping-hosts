@@ -115,7 +115,7 @@ PingHostContactAccessory.prototype.doPing = function () {
         self.log("[" + self.name + "] socket error with session " + self.options.sessionId +  ": " + error.toString());
         self.services.ContactSensor
             .getCharacteristic(Characteristic.ContactSensorState)
-            .updateValue(this.failure_state);
+            .updateValue(self.failure_state);
     });
 
     session.on("close", function () {
@@ -127,13 +127,13 @@ PingHostContactAccessory.prototype.doPing = function () {
             self.log("[" + self.name + "] response error: " + error.toString() + " for " + target + " at " + sent + " with session " + self.options.sessionId);
             self.services.ContactSensor
                 .getCharacteristic(Characteristic.ContactSensorState)
-                .updateValue(this.failure_state);
+                .updateValue(self.failure_state);
             return;
         }
         self.log("[" + self.name + "] success for " + target + " with session " + self.options.sessionId);
         self.services.ContactSensor
             .getCharacteristic(Characteristic.ContactSensorState)
-            .updateValue(this.success_state);
+            .updateValue(self.success_state);
     });
 };
 
