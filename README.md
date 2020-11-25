@@ -23,17 +23,21 @@ Example `config.json` entry:
 				},
 				{
 					"name": "Internet",
-					"host": "www.domain.com",
+					"host": "1.1.1.1",
 					"interval": 60,
 					"timeout": 25,
-					"retries": 1
+					"retries": 1,
+					"default_open": false
 				}
 			]
 		}
 	]
 ```
 
-NOTE: 
+# Notes 
+- Hostnames are *not* currently supported, only IPv4 Addresses.
+
+- By default the sensor will show in "closed" for successful pings and "open" for failed pings (or for any other issues), changing the setting "default_open" to false will reverse this behavior.
 
 - Works better if `timeout * (1 + retries) < interval`
 - `retries` defaults to 1
