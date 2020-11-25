@@ -35,8 +35,13 @@
             "default": 1,
             "minimum": 1
           },
-          "default_state": {
-            "title": "Failure marks sensor as open?",
+          "startup_as_failed": {
+            "title": "Default to failed on startup?",
+            "type": "boolean",
+            "default": true
+          },
+          "closed_on_success": {
+            "title": "Sensor is closed on ping success?",
             "type": "boolean",
             "default": true
           }

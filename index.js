@@ -54,15 +54,22 @@ function PingHostContactAccessory(log, config, id) {
         throw new Error("Missing host!");
     }
 
-    this.default_state = config["default_open"];
-    if (!this.default_state || typeof this.default_state != "boolean" || this.default_state == true) {
-        this.log("[" + this.name + "] Default contact state set to 'open'")
-        this.default_state = Characteristic.ContactSensorState.CONTACT_NOT_DETECTED
-        this.alternate_state = Characteristic.ContactSensorState.CONTACT_DETECTED
+    this.closed_on_success = !((typeof config["closed_on_success"] === "boolean") && (config["closed_on_success"] === false));
+    this.startup_as_failed = !((typeof config["startup_as_failed"] === "boolean") && (config["startup_as_failed"] === false));
+
+    if (this.closed_on_success) {
+        this.success_state = Characteristic.ContactSensorState.CONTACT_DETECTED;
+        this.failure_state = Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
     } else {
-        this.log("[" + this.name + "] Default contact state set to 'closed'")
-        this.default_state = Characteristic.ContactSensorState.CONTACT_DETECTED
-        this.alternate_state = Characteristic.ContactSensorState.CONTACT_NOT_DETECTED
+        this.success_state = Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
+        this.failure_state = Characteristic.ContactSensorState.CONTACT_DETECTED;
+    }
+
+    if (this.startup_as_failed) {
+        this.default_state = this.failure_state;
+    }
+    else {
+        this.default_state = this.success_state;
     }
 
     this.services = {
@@ -101,7 +108,7 @@ PingHostContactAccessory.prototype.doPing = function () {
         self.log("[" + self.name + "] socket error with session " + self.options.sessionId +  ": " + error.toString());
         self.services.ContactSensor
             .getCharacteristic(Characteristic.ContactSensorState)
-            .updateValue(this.default_state);
+            .updateValue(this.failure_state);
     });
 
     session.on("close", function () {
@@ -113,13 +120,13 @@ PingHostContactAccessory.prototype.doPing = function () {
             self.log("[" + self.name + "] response error: " + error.toString() + " for " + target + " at " + sent + " with session " + self.options.sessionId);
             self.services.ContactSensor
                 .getCharacteristic(Characteristic.ContactSensorState)
-                .updateValue(this.default_state);
+                .updateValue(this.failure_state);
             return;
         }
         self.log("[" + self.name + "] success for " + target + " with session " + self.options.sessionId);
         self.services.ContactSensor
             .getCharacteristic(Characteristic.ContactSensorState)
-            .updateValue(this.alternate_state);
+            .updateValue(this.success_state);
     });
 };
 

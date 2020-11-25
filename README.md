@@ -27,7 +27,8 @@ Example `config.json` entry:
 					"interval": 60,
 					"timeout": 25,
 					"retries": 1,
-					"default_open": false
+					"startup_as_failed": false,
+					"closed_on_success": false
 				}
 			]
 		}
@@ -36,13 +37,13 @@ Example `config.json` entry:
 
 # Notes 
 - Hostnames are *not* currently supported, only IPv4 Addresses.
-
-- By default the sensor will show in "closed" for successful pings and "open" for failed pings (or for any other issues), changing the setting "default_open" to false will reverse this behavior.
-
-- Works better if `timeout * (1 + retries) < interval`
 - `retries` defaults to 1
 - `timeout` defaults to 25
 - `interval` defaults to 60
+- Works better if `timeout * (1 + retries) < interval`
+- On startup the sensor will default to a 'failed' ping state. This can be overridden by configuring `startup_as_failed: false`.
+- The sensor will have a "closed" state for successful pings and an "open" state for failed pings (or for any other issues).
+This can be overridden by configuring `closed_on_success: false`.
 
 # Permission Problem?
 
