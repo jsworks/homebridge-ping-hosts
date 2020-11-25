@@ -57,12 +57,19 @@ function PingHostContactAccessory(log, config, id) {
     this.closed_on_success = !((typeof config["closed_on_success"] === "boolean") && (config["closed_on_success"] === false));
     this.startup_as_failed = !((typeof config["startup_as_failed"] === "boolean") && (config["startup_as_failed"] === false));
 
+    this.log("[" + this.name + "] closed_on_success: " + this.closed_on_success);
+    this.log("[" + this.name + "] startup_as_failed: " + this.startup_as_failed);
+
     if (this.closed_on_success) {
         this.success_state = Characteristic.ContactSensorState.CONTACT_DETECTED;
         this.failure_state = Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
+        this.log("[" + this.name + "] success_state: CONTACT_DETECTED");
+        this.log("[" + this.name + "] failure_state: CONTACT_NOT_DETECTED");
     } else {
         this.success_state = Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
         this.failure_state = Characteristic.ContactSensorState.CONTACT_DETECTED;
+        this.log("[" + this.name + "] success_state: CONTACT_NOT_DETECTED");
+        this.log("[" + this.name + "] failure_state: CONTACT_DETECTED");
     }
 
     if (this.startup_as_failed) {
