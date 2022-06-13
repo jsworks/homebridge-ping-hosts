@@ -16,14 +16,14 @@ Example `config.json` entry:
 			"hosts": [
 				{
 					"name": "Router",
-					"host": "192.168.0.1",
+					"ipv4_address": "192.168.0.1",
 					"interval": 60,
 					"timeout": 25,
 					"retries": 1
 				},
 				{
 					"name": "Internet",
-					"host": "1.1.1.1",
+					"ipv6_address": "fe80::a00:27ff:fe2a:3427",
 					"interval": 60,
 					"timeout": 25,
 					"retries": 1,
@@ -36,7 +36,8 @@ Example `config.json` entry:
 ```
 
 # Notes 
-- Hostnames are *not* currently supported, only IPv4 Addresses.
+- Hostnames are *not* currently supported, only IPv4 or IPv6 addresses.
+- Only one of `ipv4_address` or `ipv4_address` should be specified. If both are specified, `ipv4_address` will be ignored.
 - `retries` defaults to 1
 - `timeout` defaults to 25
 - `interval` defaults to 60

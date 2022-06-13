@@ -49,9 +49,15 @@ function PingHostContactAccessory(log, config, id) {
         throw new Error("Missing name!");
     }
 
-    this.host = config["host"];
-    if (!this.host) {
-        throw new Error("Missing host!");
+    // legacy version used 'host' for 'ipv4_address'
+    this.ipv4_address = config["ipv4_address"] || config["host"];
+    this.ipv6_address = config["ipv6_address"];
+    if (!this.ipv4_address && !this.ipv6_address) {
+        throw new Error("Specify either an IPV4 or IPV6 address!");
+    }
+    if (this.ipv4_address && this.ipv6_address) {
+        self.log.error("[" + self.name + "] both IPV4 and IPV6 address specified, IPV4 will be ignored");
+        delete this.ipv4_address;
     }
 
     this.closed_on_success = !((typeof config["closed_on_success"] === "boolean") && (config["closed_on_success"] === false));
@@ -94,7 +100,7 @@ function PingHostContactAccessory(log, config, id) {
         .setValue(this.default_state);
 
     this.options = {
-        networkProtocol: ping.NetworkProtocol.IPv4,
+        networkProtocol: config.ipv6_address ? ping.NetworkProtocol.IPv6 : ping.NetworkProtocol.IPv4,
         retries: config["retries"] || 1,
         timeout: (config["timeout"] || 25) * 1000
     };
@@ -123,10 +129,10 @@ PingHostContactAccessory.prototype.doPing = function () {
         self.log.error("[" + self.name + "] socket with session " + self.options.sessionId + " closed");
     });
 
-    session.pingHost(self.host, function (error, target, sent) {
+    session.pingHost(self.ipv6_address || self.ipv4_address, function (error, target, sent) {
 
         if (error) {
-            self.log.debug("[" + self.name + "] response error: " + error.toString() + " for " + target + 
+            self.log.debug("[" + self.name + "] response error: " + error.toString() + " for " + target +
                 " at " + sent + " with session " + self.options.sessionId);
             self.services.ContactSensor
                 .getCharacteristic(Characteristic.ContactSensorState)
