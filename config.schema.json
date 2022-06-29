@@ -13,12 +13,16 @@
             "title": "Friendly Name",
             "type": "string"
           },
+          "ipv6_address": {
+            "title": "IPV6 Address",
+            "type": "string"
+          },
           "ipv4_address": {
             "title": "IPV4 Address",
             "type": "string"
           },
-          "ipv6_address": {
-            "title": "IPV6 Address",
+          "mac_address": {
+            "title": "MAC Address",
             "type": "string"
           },
           "interval": {
