@@ -71,17 +71,62 @@ async function PingHostContactAccessory(log, config, id) {
     this.log.info("[" + this.name + "] closed_on_success: " + this.closed_on_success);
     this.log.info("[" + this.name + "] startup_as_failed: " + this.startup_as_failed);
 
-    if (this.closed_on_success) {
-        this.success_state = Characteristic.ContactSensorState.CONTACT_DETECTED;
-        this.failure_state = Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
-        this.log.info("[" + this.name + "] success_state: CONTACT_DETECTED");
-        this.log.info("[" + this.name + "] failure_state: CONTACT_NOT_DETECTED");
+    this.type = config["type"] || "ContactSensor";
+    if ((this.type !== "ContactSensor") && (this.type !== "LightBulb") && (this.type !== "MotionSensor")) {
+        throw new Error("[" + self.name + "] type must be one of ContactSensor, LightBulb or MotionSensor!");
+    }
+
+    this.services = {
+        AccessoryInformation: new Service.AccessoryInformation()
+    };
+
+    this.services.AccessoryInformation.setCharacteristic(Characteristic.Manufacturer, "vectronic");
+    this.services.AccessoryInformation.setCharacteristic(Characteristic.Model, "Ping State Sensor");
+
+    if (this.type === "ContactSensor") {
+        if (this.closed_on_success) {
+            this.success_state = Characteristic.ContactSensorState.CONTACT_DETECTED;
+            this.failure_state = Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
+            this.log.info("[" + this.name + "] success_state: CONTACT_DETECTED");
+            this.log.info("[" + this.name + "] failure_state: CONTACT_NOT_DETECTED");
+        }
+        else {
+            this.success_state = Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
+            this.failure_state = Characteristic.ContactSensorState.CONTACT_DETECTED;
+            this.log.info("[" + this.name + "] success_state: CONTACT_NOT_DETECTED");
+            this.log.info("[" + this.name + "] failure_state: CONTACT_DETECTED");
+        }
+        this.services.sensor = new Service.ContactSensor(this.name);
+    }
+    else if (this.type === "MotionSensor") {
+        if (this.closed_on_success) {
+            this.success_state = true;
+            this.failure_state = false;
+            this.log.info("[" + this.name + "] success_state: MotionDetected = true");
+            this.log.info("[" + this.name + "] failure_state: MotionDetected = false");
+        }
+        else {
+            this.success_state = false;
+            this.failure_state = true;
+            this.log.info("[" + this.name + "] success_state: MotionDetected = false");
+            this.log.info("[" + this.name + "] failure_state: MotionDetected = true");
+        }
+        this.services.sensor = new Service.MotionSensor(this.name);
     }
     else {
-        this.success_state = Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
-        this.failure_state = Characteristic.ContactSensorState.CONTACT_DETECTED;
-        this.log.info("[" + this.name + "] success_state: CONTACT_NOT_DETECTED");
-        this.log.info("[" + this.name + "] failure_state: CONTACT_DETECTED");
+        if (this.closed_on_success) {
+            this.success_state = true;
+            this.failure_state = false;
+            this.log.info("[" + this.name + "] success_state: ON");
+            this.log.info("[" + this.name + "] failure_state: OFF");
+        }
+        else {
+            this.success_state = false;
+            this.failure_state = true;
+            this.log.info("[" + this.name + "] success_state: OFF");
+            this.log.info("[" + this.name + "] failure_state: ON");
+        }
+        this.services.sensor = new Service.LightBulb(this.name);
     }
 
     if (this.startup_as_failed) {
@@ -91,14 +136,15 @@ async function PingHostContactAccessory(log, config, id) {
         this.default_state = this.success_state;
     }
 
-    this.services = {
-        AccessoryInformation: new Service.AccessoryInformation(),
-        ContactSensor: new Service.ContactSensor(this.name)
-    };
-
-    this.services.AccessoryInformation.setCharacteristic(Characteristic.Manufacturer, "vectronic");
-    this.services.AccessoryInformation.setCharacteristic(Characteristic.Model, "Ping State Sensor");
-    this.services.ContactSensor.getCharacteristic(Characteristic.ContactSensorState).setValue(this.default_state);
+    if (this.type === "ContactSensor") {
+        this.services.sensor.getCharacteristic(Characteristic.ContactSensorState).setValue(this.default_state);
+    }
+    else if (this.type === "MotionSensor") {
+        this.services.sensor.getCharacteristic(Characteristic.MotionDetected).setValue(this.default_state);
+    }
+    else {
+        this.services.sensor.getCharacteristic(Characteristic.On).setValue(this.default_state);
+    }
 
     if (this.mac_address) {
         try {
@@ -130,9 +176,15 @@ PingHostContactAccessory.prototype.doPing = function () {
 
     session.on("error", function (error) {
         self.log.error("[" + self.name + "] socket error with session " + self.options.sessionId +  ": " + error.toString());
-        self.services.ContactSensor
-            .getCharacteristic(Characteristic.ContactSensorState)
-            .updateValue(self.failure_state);
+        if (self.type === "ContactSensor") {
+            self.services.sensor.getCharacteristic(Characteristic.ContactSensorState).updateValue(this.failure_state);
+        }
+        else if (self.type === "MotionSensor") {
+            self.services.sensor.getCharacteristic(Characteristic.MotionDetected).updateValue(this.failure_state);
+        }
+        else {
+            self.services.sensor.getCharacteristic(Characteristic.On).updateValue(this.failure_state);
+        }
     });
 
     session.on("close", function () {
@@ -144,20 +196,32 @@ PingHostContactAccessory.prototype.doPing = function () {
         if (error) {
             self.log.debug("[" + self.name + "] response error: " + error.toString() + " for " + target +
                 " at " + sent + " with session " + self.options.sessionId);
-            self.services.ContactSensor
-                .getCharacteristic(Characteristic.ContactSensorState)
-                .updateValue(self.failure_state);
+            if (self.type === "ContactSensor") {
+                self.services.sensor.getCharacteristic(Characteristic.ContactSensorState).updateValue(this.failure_state);
+            }
+            else if (self.type === "MotionSensor") {
+                self.services.sensor.getCharacteristic(Characteristic.MotionDetected).updateValue(this.failure_state);
+            }
+            else {
+                self.services.sensor.getCharacteristic(Characteristic.On).updateValue(this.failure_state);
+            }
             return;
         }
 
         self.log.debug("[" + self.name + "] success for " + target + " with session " + self.options.sessionId);
-        self.services.ContactSensor
-            .getCharacteristic(Characteristic.ContactSensorState)
-            .updateValue(self.success_state);
+        if (self.type === "ContactSensor") {
+            self.services.sensor.getCharacteristic(Characteristic.ContactSensorState).updateValue(this.success_state);
+        }
+        else if (self.type === "MotionSensor") {
+            self.services.sensor.getCharacteristic(Characteristic.MotionDetected).updateValue(this.success_state);
+        }
+        else {
+            self.services.sensor.getCharacteristic(Characteristic.On).updateValue(this.success_state);
+        }
     });
 };
 
 
 PingHostContactAccessory.prototype.getServices = function () {
-    return [this.services.AccessoryInformation, this.services.ContactSensor];
+    return [this.services.AccessoryInformation, this.services.sensor];
 };

@@ -21,7 +21,8 @@ Example `config.json` entry:
                 "timeout": 25,
                 "retries": 1,
                 "startup_as_failed": true,
-                "closed_on_success": true
+                "closed_on_success": true,
+                "type": "LightBulb"
             },
             {
                 "name": "Internet",
@@ -30,7 +31,8 @@ Example `config.json` entry:
                 "timeout": 25,
                 "retries": 1,
                 "startup_as_failed": true,
-                "closed_on_success": true
+                "closed_on_success": true,
+                "type": "LightBulb"
             },
             {
                 "name": "Television",
@@ -39,7 +41,8 @@ Example `config.json` entry:
                 "timeout": 25,
                 "retries": 1,
                 "startup_as_failed": true,
-                "closed_on_success": true
+                "closed_on_success": true,
+                "type": "ContactSensor"
             }
         ]
     }
@@ -59,6 +62,7 @@ Example `config.json` entry:
 - On startup the sensor will default to a "failed" ping state. This can be overridden by configuring `startup_as_failed: false`.
 - The sensor will have a "closed" state for successful pings and an "open" state for failed pings (or for any other issues).
 This can be overridden by configuring `closed_on_success: false`.
+- The `type` of the accessory can be one of `ContactSensor`, `LightBulb` or `MotionSensor`. The default is `ContactSensor`.
 
 # Permission Problem?
 

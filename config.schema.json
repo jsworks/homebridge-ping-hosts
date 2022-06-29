@@ -52,6 +52,10 @@
             "title": "Sensor is closed on ping success?",
             "type": "boolean",
             "default": true
+          },
+          "type": {
+            "title": "Accessory Type",
+            "type": "string"
           }
         }
       }
