@@ -1,11 +1,11 @@
 "use strict";
 
 const ping = require("net-ping");
+const arp = require('@network-utils/arp-lookup');
 let Service, Characteristic;
 
 
 module.exports = function(homebridge) {
-
 	Service = homebridge.hap.Service;
 	Characteristic = homebridge.hap.Characteristic;
 
@@ -33,14 +33,13 @@ PingHostsPlatform.prototype.accessories = function (callback) {
         throw new Error("Max 100 hosts supported, might run into ping session ID problems otherwise....");
     }
     for (let i = 0; i < this.hosts.length; i++) {
-        accessories.push(new PingHostContactAccessory(this.log, this.hosts[i], i+1));
+        accessories.push(new PingHostContactAccessory(this.log, this.hosts[i], i + 1));
     }
     callback(accessories);
 };
 
 
-function PingHostContactAccessory(log, config, id) {
-
+async function PingHostContactAccessory(log, config, id) {
     this.log = log;
     this.id = id;
 
@@ -52,12 +51,18 @@ function PingHostContactAccessory(log, config, id) {
     // legacy version used 'host' for 'ipv4_address'
     this.ipv4_address = config["ipv4_address"] || config["host"];
     this.ipv6_address = config["ipv6_address"];
-    if (!this.ipv4_address && !this.ipv6_address) {
-        throw new Error("Specify either an IPV4 or IPV6 address!");
+    this.mac_address = config["mac_address"];
+    if (!this.ipv4_address && !this.ipv6_address && !this.mac_address) {
+        throw new Error("[" + self.name + "] specify one of ipv6_address, ipv4_address or mac_address!");
     }
-    if (this.ipv4_address && this.ipv6_address) {
-        self.log.error("[" + self.name + "] both IPV4 and IPV6 address specified, IPV4 will be ignored");
+    if (this.ipv6_address && (this.ipv4_address || this.mac_address)) {
+        self.log.error("[" + self.name + "] multiple addresses specified, ipv6_address will be used");
         delete this.ipv4_address;
+        delete this.mac_address;
+    }
+    else if (this.ipv4_address && this.mac_address) {
+        self.log.error("[" + self.name + "] multiple addresses specified, ipv4_address will be used");
+        delete this.mac_address;
     }
 
     this.closed_on_success = !((typeof config["closed_on_success"] === "boolean") && (config["closed_on_success"] === false));
@@ -71,7 +76,8 @@ function PingHostContactAccessory(log, config, id) {
         this.failure_state = Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
         this.log.info("[" + this.name + "] success_state: CONTACT_DETECTED");
         this.log.info("[" + this.name + "] failure_state: CONTACT_NOT_DETECTED");
-    } else {
+    }
+    else {
         this.success_state = Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
         this.failure_state = Characteristic.ContactSensorState.CONTACT_DETECTED;
         this.log.info("[" + this.name + "] success_state: CONTACT_NOT_DETECTED");
@@ -90,17 +96,22 @@ function PingHostContactAccessory(log, config, id) {
         ContactSensor: new Service.ContactSensor(this.name)
     };
 
-    this.services.AccessoryInformation
-        .setCharacteristic(Characteristic.Manufacturer, "vectronic");
-    this.services.AccessoryInformation
-        .setCharacteristic(Characteristic.Model, "Ping State Sensor");
+    this.services.AccessoryInformation.setCharacteristic(Characteristic.Manufacturer, "vectronic");
+    this.services.AccessoryInformation.setCharacteristic(Characteristic.Model, "Ping State Sensor");
+    this.services.ContactSensor.getCharacteristic(Characteristic.ContactSensorState).setValue(this.default_state);
 
-    this.services.ContactSensor
-        .getCharacteristic(Characteristic.ContactSensorState)
-        .setValue(this.default_state);
+    if (this.mac_address) {
+        try {
+            this.ipv4_address = await arp.toIP(this.mac_address);
+            this.log.info("[" + this.name + "] ARP lookup result: " + this.mac_address + " => " + this.ipv4_address);
+        }
+        catch(err) {
+            throw new Error("[" + self.name + "] ARP lookup failed: " + err);
+        }
+    }
 
     this.options = {
-        networkProtocol: config.ipv6_address ? ping.NetworkProtocol.IPv6 : ping.NetworkProtocol.IPv4,
+        networkProtocol: this.ipv6_address ? ping.NetworkProtocol.IPv6 : ping.NetworkProtocol.IPv4,
         retries: config["retries"] || 1,
         timeout: (config["timeout"] || 25) * 1000
     };
@@ -110,7 +121,6 @@ function PingHostContactAccessory(log, config, id) {
 
 
 PingHostContactAccessory.prototype.doPing = function () {
-
     // Random session IDs from a block of 100 per host ID. Make sure never 0.
     this.options.sessionId = getRandomInt((this.id + 1) * 100, (this.id + 2) * 100);
 
