@@ -140,10 +140,10 @@ function PingHostContactAccessory(log, config, id) {
         this.default_state = this.success_state;
     }
 
-    if (this.type === "ContactSensor") {
+    if (this.type.toLowerCase() === "contactsensor") {
         this.services.sensor.getCharacteristic(Characteristic.ContactSensorState).setValue(this.default_state);
     }
-    else if (this.type === "MotionSensor") {
+    else if (this.type.toLowerCase() === "motionsensor") {
         this.services.sensor.getCharacteristic(Characteristic.MotionDetected).setValue(this.default_state);
     }
     else {
@@ -183,14 +183,14 @@ PingHostContactAccessory.prototype.doPing = function () {
 
     session.on("error", function (error) {
         self.log.error("[" + self.name + "] socket error with session " + self.options.sessionId +  ": " + error.toString());
-        if (self.type === "ContactSensor") {
-            self.services.sensor.getCharacteristic(Characteristic.ContactSensorState).updateValue(this.failure_state);
+        if (self.type.toLowerCase() === "contactsensor") {
+            self.services.sensor.getCharacteristic(Characteristic.ContactSensorState).updateValue(self.failure_state);
         }
-        else if (self.type === "MotionSensor") {
-            self.services.sensor.getCharacteristic(Characteristic.MotionDetected).updateValue(this.failure_state);
+        else if (self.type.toLowerCase() === "motionsensor") {
+            self.services.sensor.getCharacteristic(Characteristic.MotionDetected).updateValue(self.failure_state);
         }
         else {
-            self.services.sensor.getCharacteristic(Characteristic.On).updateValue(this.failure_state);
+            self.services.sensor.getCharacteristic(Characteristic.On).updateValue(self.failure_state);
         }
     });
 
@@ -203,27 +203,27 @@ PingHostContactAccessory.prototype.doPing = function () {
         if (error) {
             self.log.debug("[" + self.name + "] response error: " + error.toString() + " for " + target +
                 " at " + sent + " with session " + self.options.sessionId);
-            if (self.type === "ContactSensor") {
-                self.services.sensor.getCharacteristic(Characteristic.ContactSensorState).updateValue(this.failure_state);
+            if (self.type.toLowerCase() === "contactsensor") {
+                self.services.sensor.getCharacteristic(Characteristic.ContactSensorState).updateValue(self.failure_state);
             }
-            else if (self.type === "MotionSensor") {
-                self.services.sensor.getCharacteristic(Characteristic.MotionDetected).updateValue(this.failure_state);
+            else if (self.type.toLowerCase() === "motionsensor") {
+                self.services.sensor.getCharacteristic(Characteristic.MotionDetected).updateValue(self.failure_state);
             }
             else {
-                self.services.sensor.getCharacteristic(Characteristic.On).updateValue(this.failure_state);
+                self.services.sensor.getCharacteristic(Characteristic.On).updateValue(self.failure_state);
             }
             return;
         }
 
         self.log.debug("[" + self.name + "] success for " + target + " with session " + self.options.sessionId);
-        if (self.type === "ContactSensor") {
-            self.services.sensor.getCharacteristic(Characteristic.ContactSensorState).updateValue(this.success_state);
+        if (self.type.toLowerCase() === "contactsensor") {
+            self.services.sensor.getCharacteristic(Characteristic.ContactSensorState).updateValue(self.success_state);
         }
-        else if (self.type === "MotionSensor") {
-            self.services.sensor.getCharacteristic(Characteristic.MotionDetected).updateValue(this.success_state);
+        else if (self.type.toLowerCase() === "motionsensor") {
+            self.services.sensor.getCharacteristic(Characteristic.MotionDetected).updateValue(self.success_state);
         }
         else {
-            self.services.sensor.getCharacteristic(Characteristic.On).updateValue(this.success_state);
+            self.services.sensor.getCharacteristic(Characteristic.On).updateValue(self.success_state);
         }
     });
 };
