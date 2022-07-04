@@ -76,8 +76,8 @@ function PingHostContactAccessory(log, config, id) {
     this.log.info("[" + this.name + "] startup_as_failed: " + this.startup_as_failed);
 
     this.type = config["type"] || "ContactSensor";
-    if ((this.type !== "ContactSensor") && (this.type !== "LightBulb") && (this.type !== "MotionSensor")) {
-        throw new Error("[" + self.name + "] type must be one of ContactSensor, LightBulb or MotionSensor!");
+    if ((this.type !== "ContactSensor") && (this.type !== "Lightbulb") && (this.type !== "MotionSensor")) {
+        throw new Error("[" + self.name + "] type must be one of ContactSensor, Lightbulb or MotionSensor!");
     }
 
     this.services = {
@@ -130,7 +130,7 @@ function PingHostContactAccessory(log, config, id) {
             this.log.info("[" + this.name + "] success_state: OFF");
             this.log.info("[" + this.name + "] failure_state: ON");
         }
-        this.services.sensor = new Service.LightBulb(this.name);
+        this.services.sensor = new Service.Lightbulb(this.name);
     }
 
     if (this.startup_as_failed) {
