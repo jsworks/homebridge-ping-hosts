@@ -28,18 +28,22 @@ function PingHostsPlatform(log, config) {
 
 
 PingHostsPlatform.prototype.accessories = function (callback) {
-    const accessories = [];
     if (this.hosts.length > 100) {
         throw new Error("Max 100 hosts supported, might run into ping session ID problems otherwise....");
     }
+
+    const accessories = [];
     for (let i = 0; i < this.hosts.length; i++) {
         accessories.push(new PingHostContactAccessory(this.log, this.hosts[i], i + 1));
     }
-    callback(accessories);
+
+    const promise = Promise.all(accessories.map((accessory) => accessory.init()));
+
+    promise.then(() => callback(accessories));
 };
 
 
-async function PingHostContactAccessory(log, config, id) {
+function PingHostContactAccessory(log, config, id) {
     this.log = log;
     this.id = id;
 
@@ -146,6 +150,16 @@ async function PingHostContactAccessory(log, config, id) {
         this.services.sensor.getCharacteristic(Characteristic.On).setValue(this.default_state);
     }
 
+    this.options = {
+        networkProtocol: this.ipv6_address ? ping.NetworkProtocol.IPv6 : ping.NetworkProtocol.IPv4,
+        retries: config["retries"] || 1,
+        timeout: (config["timeout"] || 25) * 1000
+    };
+
+    this.pingInterval = (config["interval"] || 60) * 1000;
+}
+
+PingHostContactAccessory.prototype.init = async function () {
     if (this.mac_address) {
         try {
             this.ipv4_address = await arp.toIP(this.mac_address);
@@ -156,15 +170,8 @@ async function PingHostContactAccessory(log, config, id) {
         }
     }
 
-    this.options = {
-        networkProtocol: this.ipv6_address ? ping.NetworkProtocol.IPv6 : ping.NetworkProtocol.IPv4,
-        retries: config["retries"] || 1,
-        timeout: (config["timeout"] || 25) * 1000
-    };
-
-	setInterval(this.doPing.bind(this), (config["interval"] || 60) * 1000);
+    setInterval(this.doPing.bind(this), this.pingInterval);
 }
-
 
 PingHostContactAccessory.prototype.doPing = function () {
     // Random session IDs from a block of 100 per host ID. Make sure never 0.
