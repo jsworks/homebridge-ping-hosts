@@ -54,7 +54,7 @@ Example `config.json` entry:
 - Only one of `ipv6_address`, `ipv4_address` or `mac_address` should be specified.
 - If `ipv6_address` is specified any specified `ipv4_address` or `mac_address` will be ignored.
 - If `ipv4_address` is specified any specified `mac_address` will be ignored.
-- If a MAC address is specified, ARP table lookup is performed to map to an IP address.
+- If a MAC address is specified, ARP table lookup is performed to map to an IP address. NOTE: This will only resolve an IP address if there is already a MAC address in the ARP table on the machine running Homebridge.
 - `interval` defaults to 60
 - `timeout` defaults to 25
 - `retries` defaults to 1
