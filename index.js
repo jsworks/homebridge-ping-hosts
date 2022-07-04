@@ -77,7 +77,7 @@ function PingHostContactAccessory(log, config, id) {
 
     this.type = config["type"] || "ContactSensor";
     if ((this.type !== "ContactSensor") && (this.type !== "Lightbulb") && (this.type !== "MotionSensor")) {
-        throw new Error("[" + self.name + "] type must be one of ContactSensor, Lightbulb or MotionSensor!");
+        throw new Error("[" + this.name + "] type must be one of ContactSensor, Lightbulb or MotionSensor!");
     }
 
     this.services = {
