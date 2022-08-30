@@ -154,6 +154,8 @@ PingHostContactAccessory.prototype.init = async function () {
         }
     }
 
+    await this.doPing();
+
     setInterval(this.doPing.bind(this), this.ping_interval);
 }
 
