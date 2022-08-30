@@ -169,6 +169,7 @@ PingHostContactAccessory.prototype.doPing = async function () {
                     timeout: this.timeout,
                     v6: this.ipv6_address !== undefined
                 });
+                this.log.debug("[" + this.name + "] result: " + JSON.stringify(result));
                 if (!result.isAlive) {
                     throw new Error('not alive');
                 }
