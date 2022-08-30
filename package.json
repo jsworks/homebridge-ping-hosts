@@ -1,7 +1,7 @@
 {
 	"name": "@vectronic/homebridge-ping-hosts",
 	"displayName": "Homebridge Ping Hosts",
-	"version": "3.1.4",
+	"version": "3.2.0",
 	"description": "Ping state sensor plugin for homebridge (https://github.com/nfarina/homebridge)",
 	"license": "ISC",
 	"keywords": [
@@ -18,7 +18,7 @@
 		"url": "git@github.com:vectronic/homebridge-ping-hosts.git"
 	},
 	"dependencies": {
-		"net-ping": "^1.2.3",
-		"@network-utils/arp-lookup": "^2.0.1"
+		"ping": "0.4.2",
+		"@network-utils/arp-lookup": "2.0.1"
 	}
 }

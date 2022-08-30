@@ -1,6 +1,6 @@
 "use strict";
 
-const ping = require("net-ping");
+const ping = require("ping");
 const arp = require('@network-utils/arp-lookup');
 let Service, Characteristic;
 
@@ -13,14 +13,6 @@ module.exports = function(homebridge) {
 };
 
 
-// The maximum is exclusive and the minimum is inclusive
-function getRandomInt(min, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min)) + min;
-}
-
-
 function PingHostsPlatform(log, config) {
 	this.log = log;
     this.hosts = config["hosts"] || [];
@@ -28,10 +20,6 @@ function PingHostsPlatform(log, config) {
 
 
 PingHostsPlatform.prototype.accessories = function (callback) {
-    if (this.hosts.length > 100) {
-        throw new Error("Max 100 hosts supported, might run into ping session ID problems otherwise....");
-    }
-
     const accessories = [];
     for (let i = 0; i < this.hosts.length; i++) {
         accessories.push(new PingHostContactAccessory(this.log, this.hosts[i], i + 1));
@@ -52,20 +40,24 @@ function PingHostContactAccessory(log, config, id) {
         throw new Error("Missing name!");
     }
 
+    this.retries = config["retries"] || 1;
+    this.timeout = (config["timeout"] || 25) * 1000;
+    this.ping_interval = (config["interval"] || 60) * 1000;
+
     // legacy version used 'host' for 'ipv4_address'
     this.ipv4_address = config["ipv4_address"] || config["host"];
     this.ipv6_address = config["ipv6_address"];
     this.mac_address = config["mac_address"];
     if (!this.ipv4_address && !this.ipv6_address && !this.mac_address) {
-        throw new Error("[" + self.name + "] specify one of ipv6_address, ipv4_address or mac_address!");
+        throw new Error("[" + this.name + "] specify one of ipv6_address, ipv4_address or mac_address!");
     }
     if (this.ipv6_address && (this.ipv4_address || this.mac_address)) {
-        self.log.error("[" + self.name + "] multiple addresses specified, ipv6_address will be used");
+        this.log.error("[" + this.name + "] multiple addresses specified, ipv6_address will be used");
         delete this.ipv4_address;
         delete this.mac_address;
     }
     else if (this.ipv4_address && this.mac_address) {
-        self.log.error("[" + self.name + "] multiple addresses specified, ipv4_address will be used");
+        this.log.error("[" + this.name + "] multiple addresses specified, ipv4_address will be used");
         delete this.mac_address;
     }
 
@@ -149,14 +141,6 @@ function PingHostContactAccessory(log, config, id) {
     else {
         this.services.sensor.getCharacteristic(Characteristic.On).setValue(this.default_state);
     }
-
-    this.options = {
-        networkProtocol: this.ipv6_address ? ping.NetworkProtocol.IPv6 : ping.NetworkProtocol.IPv4,
-        retries: config["retries"] || 1,
-        timeout: (config["timeout"] || 25) * 1000
-    };
-
-    this.pingInterval = (config["interval"] || 60) * 1000;
 }
 
 PingHostContactAccessory.prototype.init = async function () {
@@ -166,66 +150,63 @@ PingHostContactAccessory.prototype.init = async function () {
             this.log.info("[" + this.name + "] ARP lookup result: " + this.mac_address + " => " + this.ipv4_address);
         }
         catch(err) {
-            throw new Error("[" + self.name + "] ARP lookup failed: " + err);
+            throw new Error("[" + this.name + "] ARP lookup failed: " + err);
         }
     }
 
-    setInterval(this.doPing.bind(this), this.pingInterval);
+    setInterval(this.doPing.bind(this), this.ping_interval);
 }
 
-PingHostContactAccessory.prototype.doPing = function () {
-    // Random session IDs from a block of 100 per host ID. Make sure never 0.
-    this.options.sessionId = getRandomInt((this.id + 1) * 100, (this.id + 2) * 100);
+PingHostContactAccessory.prototype.doPing = async function () {
+    const target = this.ipv6_address || this.ipv4_address;
+    let i = 0;
 
-    const session = ping.createSession(this.options);
-
-    const self = this;
-
-    session.on("error", function (error) {
-        self.log.error("[" + self.name + "] socket error with session " + self.options.sessionId +  ": " + error.toString());
-        if (self.type.toLowerCase() === "contactsensor") {
-            self.services.sensor.getCharacteristic(Characteristic.ContactSensorState).updateValue(self.failure_state);
+    try {
+        let result;
+        while (true) {
+            try {
+                result = await ping.promise.probe(target, {
+                    timeout: this.timeout,
+                    v6: this.ipv6_address !== undefined
+                });
+                if (!result.isAlive) {
+                    throw new Error('not alive');
+                }
+                break;
+            } catch (e) {
+                i++;
+                if (i === this.retries) {
+                    throw e;
+                }
+                else {
+                    this.log.warn("[" + this.name + "] not alive for " + target + ", retrying");
+                }
+            }
         }
-        else if (self.type.toLowerCase() === "motionsensor") {
-            self.services.sensor.getCharacteristic(Characteristic.MotionDetected).updateValue(self.failure_state);
+        this.log.debug("[" + this.name + "] success for " + target);
+        if (this.type.toLowerCase() === "contactsensor") {
+            this.services.sensor.getCharacteristic(Characteristic.ContactSensorState).updateValue(this.success_state);
+        }
+        else if (this.type.toLowerCase() === "motionsensor") {
+            this.services.sensor.getCharacteristic(Characteristic.MotionDetected).updateValue(this.success_state);
         }
         else {
-            self.services.sensor.getCharacteristic(Characteristic.On).updateValue(self.failure_state);
+            this.services.sensor.getCharacteristic(Characteristic.On).updateValue(this.success_state);
         }
-    });
+    }
+    catch (e1) {
+        this.log.error("[" + this.name + "] response error: " + e1.toString() + " for " + target);
 
-    session.on("close", function () {
-        self.log.error("[" + self.name + "] socket with session " + self.options.sessionId + " closed");
-    });
-
-    session.pingHost(self.ipv6_address || self.ipv4_address, function (error, target, sent) {
-
-        if (error) {
-            self.log.debug("[" + self.name + "] response error: " + error.toString() + " for " + target +
-                " at " + sent + " with session " + self.options.sessionId);
-            if (self.type.toLowerCase() === "contactsensor") {
-                self.services.sensor.getCharacteristic(Characteristic.ContactSensorState).updateValue(self.failure_state);
-            }
-            else if (self.type.toLowerCase() === "motionsensor") {
-                self.services.sensor.getCharacteristic(Characteristic.MotionDetected).updateValue(self.failure_state);
-            }
-            else {
-                self.services.sensor.getCharacteristic(Characteristic.On).updateValue(self.failure_state);
-            }
-            return;
+        if (this.type.toLowerCase() === "contactsensor") {
+            this.services.sensor.getCharacteristic(Characteristic.ContactSensorState).updateValue(this.failure_state);
         }
-
-        self.log.debug("[" + self.name + "] success for " + target + " with session " + self.options.sessionId);
-        if (self.type.toLowerCase() === "contactsensor") {
-            self.services.sensor.getCharacteristic(Characteristic.ContactSensorState).updateValue(self.success_state);
-        }
-        else if (self.type.toLowerCase() === "motionsensor") {
-            self.services.sensor.getCharacteristic(Characteristic.MotionDetected).updateValue(self.success_state);
+        else if (this.type.toLowerCase() === "motionsensor") {
+            this.services.sensor.getCharacteristic(Characteristic.MotionDetected).updateValue(this.failure_state);
         }
         else {
-            self.services.sensor.getCharacteristic(Characteristic.On).updateValue(self.success_state);
+            this.services.sensor.getCharacteristic(Characteristic.On).updateValue(this.failure_state);
         }
-    });
+    }
 };
 
 

@@ -55,7 +55,13 @@
           },
           "type": {
             "title": "Accessory Type",
-            "type": "string"
+            "type": "string",
+            "default": "ContactSensor",
+            "oneOf": [
+              { "title": "ContactSensor", "enum": ["ContactSensor"] },
+              { "title": "Lightbulb", "enum": ["Lightbulb"] },
+              { "title": "MotionSensor", "enum": ["MotionSensor"] }
+            ]
           }
         }
       }
