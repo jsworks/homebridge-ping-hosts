@@ -76,7 +76,7 @@ function PingHostContactAccessory(log, config, id) {
     this.services.AccessoryInformation.setCharacteristic(Characteristic.Manufacturer, "vectronic");
     this.services.AccessoryInformation.setCharacteristic(Characteristic.Model, "Ping State Sensor");
 
-    if (this.type === "ContactSensor") {
+    if (this.type.toLowerCase() === "contactsensor") {
         if (this.closed_on_success) {
             this.success_state = Characteristic.ContactSensorState.CONTACT_DETECTED;
             this.failure_state = Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
@@ -89,7 +89,8 @@ function PingHostContactAccessory(log, config, id) {
             this.log.info("[" + this.name + "] failure_state: CONTACT_DETECTED");
         }
         this.services.sensor = new Service.ContactSensor(this.name);
-    } else if (this.type === "MotionSensor") {
+        this.characteristic = this.services.sensor.getCharacteristic(Characteristic.ContactSensorState);
+    } else if (this.type.toLowerCase() === "motionsensor") {
         if (this.closed_on_success) {
             this.success_state = true;
             this.failure_state = false;
@@ -102,6 +103,7 @@ function PingHostContactAccessory(log, config, id) {
             this.log.info("[" + this.name + "] failure_state: MotionDetected = true");
         }
         this.services.sensor = new Service.MotionSensor(this.name);
+        this.characteristic = this.services.sensor.getCharacteristic(Characteristic.MotionDetected);
     } else {
         if (this.closed_on_success) {
             this.success_state = true;
@@ -115,6 +117,7 @@ function PingHostContactAccessory(log, config, id) {
             this.log.info("[" + this.name + "] failure_state: ON");
         }
         this.services.sensor = new Service.Lightbulb(this.name);
+        this.characteristic = this.services.sensor.getCharacteristic(Characteristic.On);
     }
 
     if (this.startup_as_failed) {
@@ -123,13 +126,13 @@ function PingHostContactAccessory(log, config, id) {
         this.default_state = this.success_state;
     }
 
-    if (this.type.toLowerCase() === "contactsensor") {
-        this.services.sensor.getCharacteristic(Characteristic.ContactSensorState).setValue(this.default_state);
-    } else if (this.type.toLowerCase() === "motionsensor") {
-        this.services.sensor.getCharacteristic(Characteristic.MotionDetected).setValue(this.default_state);
-    } else {
-        this.services.sensor.getCharacteristic(Characteristic.On).setValue(this.default_state);
-    }
+    this.state = this.default_state;
+
+    this.characteristic.setValue(this.state)
+        .onGet(() => this.state)
+        .onSet((value) => {
+            this.log.warn("[" + this.name + "] ignoring request to set value to " + value + ", current: " + this.state);
+        });
 
     setInterval(this.doPing.bind(this), this.ping_interval);
 }
@@ -172,23 +175,14 @@ PingHostContactAccessory.prototype.doPing = async function () {
             }
         }
         this.log.debug("[" + this.name + "] success for " + target);
-        if (this.type.toLowerCase() === "contactsensor") {
-            this.services.sensor.getCharacteristic(Characteristic.ContactSensorState).updateValue(this.success_state);
-        } else if (this.type.toLowerCase() === "motionsensor") {
-            this.services.sensor.getCharacteristic(Characteristic.MotionDetected).updateValue(this.success_state);
-        } else {
-            this.services.sensor.getCharacteristic(Characteristic.On).updateValue(this.success_state);
-        }
+
+        this.state = this.success_state;
+        this.characteristic.updateValue(this.state);
     } catch (e1) {
         this.log.error("[" + this.name + "] response error: " + e1.toString() + " for " + target);
 
-        if (this.type.toLowerCase() === "contactsensor") {
-            this.services.sensor.getCharacteristic(Characteristic.ContactSensorState).updateValue(this.failure_state);
-        } else if (this.type.toLowerCase() === "motionsensor") {
-            this.services.sensor.getCharacteristic(Characteristic.MotionDetected).updateValue(this.failure_state);
-        } else {
-            this.services.sensor.getCharacteristic(Characteristic.On).updateValue(this.failure_state);
-        }
+        this.state = this.failure_state;
+        this.characteristic.updateValue(this.state);
     }
 };
 
