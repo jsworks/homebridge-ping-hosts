@@ -5,16 +5,16 @@ const arp = require('@network-utils/arp-lookup');
 let Service, Characteristic;
 
 
-module.exports = function(homebridge) {
-	Service = homebridge.hap.Service;
-	Characteristic = homebridge.hap.Characteristic;
+module.exports = function (homebridge) {
+    Service = homebridge.hap.Service;
+    Characteristic = homebridge.hap.Characteristic;
 
-	homebridge.registerPlatform("@vectronic/homebridge-ping-hosts", "PingHosts", PingHostsPlatform);
+    homebridge.registerPlatform("@vectronic/homebridge-ping-hosts", "PingHosts", PingHostsPlatform);
 };
 
 
 function PingHostsPlatform(log, config) {
-	this.log = log;
+    this.log = log;
     this.hosts = config["hosts"] || [];
 }
 
@@ -53,8 +53,7 @@ function PingHostContactAccessory(log, config, id) {
         this.log.error("[" + this.name + "] multiple addresses specified, ipv6_address will be used");
         delete this.ipv4_address;
         delete this.mac_address;
-    }
-    else if (this.ipv4_address && this.mac_address) {
+    } else if (this.ipv4_address && this.mac_address) {
         this.log.error("[" + this.name + "] multiple addresses specified, ipv4_address will be used");
         delete this.mac_address;
     }
@@ -83,38 +82,33 @@ function PingHostContactAccessory(log, config, id) {
             this.failure_state = Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
             this.log.info("[" + this.name + "] success_state: CONTACT_DETECTED");
             this.log.info("[" + this.name + "] failure_state: CONTACT_NOT_DETECTED");
-        }
-        else {
+        } else {
             this.success_state = Characteristic.ContactSensorState.CONTACT_NOT_DETECTED;
             this.failure_state = Characteristic.ContactSensorState.CONTACT_DETECTED;
             this.log.info("[" + this.name + "] success_state: CONTACT_NOT_DETECTED");
             this.log.info("[" + this.name + "] failure_state: CONTACT_DETECTED");
         }
         this.services.sensor = new Service.ContactSensor(this.name);
-    }
-    else if (this.type === "MotionSensor") {
+    } else if (this.type === "MotionSensor") {
         if (this.closed_on_success) {
             this.success_state = true;
             this.failure_state = false;
             this.log.info("[" + this.name + "] success_state: MotionDetected = true");
             this.log.info("[" + this.name + "] failure_state: MotionDetected = false");
-        }
-        else {
+        } else {
             this.success_state = false;
             this.failure_state = true;
             this.log.info("[" + this.name + "] success_state: MotionDetected = false");
             this.log.info("[" + this.name + "] failure_state: MotionDetected = true");
         }
         this.services.sensor = new Service.MotionSensor(this.name);
-    }
-    else {
+    } else {
         if (this.closed_on_success) {
             this.success_state = true;
             this.failure_state = false;
             this.log.info("[" + this.name + "] success_state: ON");
             this.log.info("[" + this.name + "] failure_state: OFF");
-        }
-        else {
+        } else {
             this.success_state = false;
             this.failure_state = true;
             this.log.info("[" + this.name + "] success_state: OFF");
@@ -125,18 +119,15 @@ function PingHostContactAccessory(log, config, id) {
 
     if (this.startup_as_failed) {
         this.default_state = this.failure_state;
-    }
-    else {
+    } else {
         this.default_state = this.success_state;
     }
 
     if (this.type.toLowerCase() === "contactsensor") {
         this.services.sensor.getCharacteristic(Characteristic.ContactSensorState).setValue(this.default_state);
-    }
-    else if (this.type.toLowerCase() === "motionsensor") {
+    } else if (this.type.toLowerCase() === "motionsensor") {
         this.services.sensor.getCharacteristic(Characteristic.MotionDetected).setValue(this.default_state);
-    }
-    else {
+    } else {
         this.services.sensor.getCharacteristic(Characteristic.On).setValue(this.default_state);
     }
 
@@ -152,8 +143,7 @@ PingHostContactAccessory.prototype.doPing = async function () {
             try {
                 resolvedAddress = await arp.toIP(this.mac_address);
                 this.log.debug("[" + this.name + "] ARP lookup result: " + this.mac_address + " => " + resolvedAddress);
-            }
-            catch(e) {
+            } catch (e) {
                 throw new Error("[" + this.name + "] ARP lookup failed: " + e);
             }
         }
@@ -176,8 +166,7 @@ PingHostContactAccessory.prototype.doPing = async function () {
                 i++;
                 if (i === this.retries) {
                     throw e;
-                }
-                else {
+                } else {
                     this.log.warn("[" + this.name + "] not alive for " + target + ", retrying");
                 }
             }
@@ -185,24 +174,19 @@ PingHostContactAccessory.prototype.doPing = async function () {
         this.log.debug("[" + this.name + "] success for " + target);
         if (this.type.toLowerCase() === "contactsensor") {
             this.services.sensor.getCharacteristic(Characteristic.ContactSensorState).updateValue(this.success_state);
-        }
-        else if (this.type.toLowerCase() === "motionsensor") {
+        } else if (this.type.toLowerCase() === "motionsensor") {
             this.services.sensor.getCharacteristic(Characteristic.MotionDetected).updateValue(this.success_state);
-        }
-        else {
+        } else {
             this.services.sensor.getCharacteristic(Characteristic.On).updateValue(this.success_state);
         }
-    }
-    catch (e1) {
+    } catch (e1) {
         this.log.error("[" + this.name + "] response error: " + e1.toString() + " for " + target);
 
         if (this.type.toLowerCase() === "contactsensor") {
             this.services.sensor.getCharacteristic(Characteristic.ContactSensorState).updateValue(this.failure_state);
-        }
-        else if (this.type.toLowerCase() === "motionsensor") {
+        } else if (this.type.toLowerCase() === "motionsensor") {
             this.services.sensor.getCharacteristic(Characteristic.MotionDetected).updateValue(this.failure_state);
-        }
-        else {
+        } else {
             this.services.sensor.getCharacteristic(Characteristic.On).updateValue(this.failure_state);
         }
     }
