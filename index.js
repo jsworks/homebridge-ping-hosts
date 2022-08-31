@@ -25,9 +25,7 @@ PingHostsPlatform.prototype.accessories = function (callback) {
         accessories.push(new PingHostContactAccessory(this.log, this.hosts[i], i + 1));
     }
 
-    const promise = Promise.all(accessories.map((accessory) => accessory.init()));
-
-    promise.then(() => callback(accessories));
+    callback(accessories);
 };
 
 
@@ -141,33 +139,31 @@ function PingHostContactAccessory(log, config, id) {
     else {
         this.services.sensor.getCharacteristic(Characteristic.On).setValue(this.default_state);
     }
-}
-
-PingHostContactAccessory.prototype.init = async function () {
-    if (this.mac_address) {
-        try {
-            this.ipv4_address = await arp.toIP(this.mac_address);
-            this.log.info("[" + this.name + "] ARP lookup result: " + this.mac_address + " => " + this.ipv4_address);
-        }
-        catch(err) {
-            throw new Error("[" + this.name + "] ARP lookup failed: " + err);
-        }
-    }
-
-    await this.doPing();
 
     setInterval(this.doPing.bind(this), this.ping_interval);
 }
 
 PingHostContactAccessory.prototype.doPing = async function () {
-    const target = this.ipv6_address || this.ipv4_address;
-    let i = 0;
+    const target = this.ipv6_address || this.ipv4_address || this.mac_address;
+    let resolvedAddress = this.ipv6_address || this.ipv4_address;
 
     try {
+        if (this.mac_address) {
+            try {
+                resolvedAddress = await arp.toIP(this.mac_address);
+                this.log.debug("[" + this.name + "] ARP lookup result: " + this.mac_address + " => " + resolvedAddress);
+            }
+            catch(e) {
+                throw new Error("[" + this.name + "] ARP lookup failed: " + e);
+            }
+        }
+
         let result;
+        let i = 0;
+
         while (true) {
             try {
-                result = await ping.promise.probe(target, {
+                result = await ping.promise.probe(resolvedAddress, {
                     timeout: this.timeout,
                     v6: this.ipv6_address !== undefined
                 });
