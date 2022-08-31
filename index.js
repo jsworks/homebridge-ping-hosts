@@ -164,7 +164,7 @@ PingHostContactAccessory.prototype.doPing = async function () {
                 break;
             } catch (e) {
                 i++;
-                if (i === this.retries) {
+                if (i >= this.retries) {
                     throw e;
                 } else {
                     this.log.warn("[" + this.name + "] not alive for " + target + ", retrying");
