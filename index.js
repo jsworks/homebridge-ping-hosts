@@ -132,6 +132,7 @@ function PingHostContactAccessory(log, config, id) {
         .onGet(() => this.state)
         .onSet((value) => {
             this.log.warn("[" + this.name + "] ignoring request to set value to " + value + ", current: " + this.state);
+            this.characteristic.updateValue(this.state);
         });
 
     setInterval(this.doPing.bind(this), this.ping_interval);
