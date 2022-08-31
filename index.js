@@ -39,7 +39,7 @@ function PingHostContactAccessory(log, config, id) {
     }
 
     this.retries = config["retries"] || 1;
-    this.timeout = (config["timeout"] || 25) * 1000;
+    this.timeout = (config["timeout"] || 25);
     this.ping_interval = (config["interval"] || 60) * 1000;
 
     // legacy version used 'host' for 'ipv4_address'
