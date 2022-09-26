@@ -129,11 +129,14 @@ function PingHostContactAccessory(log, config, id) {
     this.state = this.default_state;
 
     this.characteristic.setValue(this.state)
-        .onGet(() => this.state)
-        .onSet((value) => {
+        .onGet(() => this.state);
+
+    if (this.type.toLowerCase() === "lightbulb") {
+        this.characteristic.onSet((value) => {
             this.log.debug("[" + this.name + "] ignoring request to set value to " + value + ", current: " + this.state);
             this.characteristic.updateValue(this.state);
         });
+    }
 
     setInterval(this.doPing.bind(this), this.ping_interval);
 }
