@@ -131,7 +131,7 @@ function PingHostContactAccessory(log, config, id) {
     this.characteristic.setValue(this.state)
         .onGet(() => this.state)
         .onSet((value) => {
-            this.log.warn("[" + this.name + "] ignoring request to set value to " + value + ", current: " + this.state);
+            this.log.debug("[" + this.name + "] ignoring request to set value to " + value + ", current: " + this.state);
             this.characteristic.updateValue(this.state);
         });
 
@@ -171,7 +171,7 @@ PingHostContactAccessory.prototype.doPing = async function () {
                 if (i >= this.retries) {
                     throw e;
                 } else {
-                    this.log.warn("[" + this.name + "] not alive for " + target + ", retrying");
+                    this.log.debug("[" + this.name + "] not alive for " + target + ", retrying");
                 }
             }
         }
@@ -180,7 +180,7 @@ PingHostContactAccessory.prototype.doPing = async function () {
         this.state = this.success_state;
         this.characteristic.updateValue(this.state);
     } catch (e1) {
-        this.log.error("[" + this.name + "] response error: " + e1.toString() + " for " + target);
+        this.log.debug("[" + this.name + "] response error: " + e1.toString() + " for " + target);
 
         this.state = this.failure_state;
         this.characteristic.updateValue(this.state);
