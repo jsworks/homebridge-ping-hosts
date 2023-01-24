@@ -25,6 +25,16 @@ Example `config.json` entry:
                 "type": "Lightbulb"
             },
             {
+                "name": "Website",
+                "ipv4_address": "website.com",
+                "interval": 60,
+                "timeout": 25,
+                "retries": 1,
+                "startup_as_failed": true,
+                "closed_on_success": true,
+                "type": "ContactSensor"
+            },
+            {
                 "name": "Internet",
                 "ipv6_address": "fe80::a00:27ff:fe2a:3427",
                 "interval": 60,
@@ -50,10 +60,10 @@ Example `config.json` entry:
 ```
 
 # Notes 
-- Hostnames are *not* currently supported, only IPv4, IPv6 or MAC addresses. 
 - Only one of `ipv6_address`, `ipv4_address` or `mac_address` should be specified for any given device.
 - If `ipv6_address` is specified any specified `ipv4_address` or `mac_address` will be ignored.
 - If `ipv4_address` is specified any specified `mac_address` will be ignored.
+- Despite the name `ipv4_address` supports either an IP address e.g. `192.168.0.1` OR a hostname e.g. `www.google.com`.
 - If a MAC address is specified, ARP table lookup is performed to map to an IP address. NOTE: This will only resolve an IP address if there is already a MAC address in the ARP table on the machine running Homebridge.
 - `interval` defaults to 60
 - `timeout` defaults to 25
