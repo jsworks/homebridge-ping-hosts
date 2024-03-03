@@ -1,0 +1,70 @@
+{
+  "pluginAlias": "PingHosts",
+  "pluginType": "platform",
+  "singular": false,
+  "schema": {
+    "hosts": {
+      "title": "Hosts",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Friendly Name",
+            "type": "string"
+          },
+          "ipv6_address": {
+            "title": "IPV6 Address",
+            "type": "string"
+          },
+          "ipv4_address": {
+            "title": "IPV4 Address",
+            "type": "string"
+          },
+          "mac_address": {
+            "title": "MAC Address",
+            "type": "string"
+          },
+          "interval": {
+            "title": "Interval",
+            "type": "integer",
+            "default": 60,
+            "minimum": 1
+          },
+          "timeout": {
+            "title": "Timeout",
+            "type": "integer",
+            "default": 25,
+            "minimum": 1
+          },
+          "retries": {
+            "title": "Retries",
+            "type": "integer",
+            "default": 1,
+            "minimum": 1
+          },
+          "startup_as_failed": {
+            "title": "Default to failed on startup?",
+            "type": "boolean",
+            "default": true
+          },
+          "closed_on_success": {
+            "title": "Sensor is closed on ping success?",
+            "type": "boolean",
+            "default": true
+          },
+          "type": {
+            "title": "Accessory Type",
+            "type": "string",
+            "default": "ContactSensor",
+            "oneOf": [
+              { "title": "ContactSensor", "enum": ["ContactSensor"] },
+              { "title": "Lightbulb", "enum": ["Lightbulb"] },
+              { "title": "MotionSensor", "enum": ["MotionSensor"] }
+            ]
+          }
+        }
+      }
+    }
+  }
+}
